@@ -3,10 +3,14 @@ OBJECTS =  picard.o AdvancePosition.o AdvanceVelocity.o BCfields.o BCinflow.o BC
 
 TARGET  = picard
 
-FC       = mpiifort
-OFLAGS   = -O3 # -mcmodel=medium -shared-intel
-FCFLAGS  = -I/usr/local/include/openmpi
-LDFLAGS  = -L/usr/local/lib/openmpi
+#FC       = mpiifort
+FC       = $(HOME)/mpich2/bin/mpif90
+#OFLAGS   = -O3 # -mcmodel=medium -shared-intel
+OFLAGS   = -fast
+#FCFLAGS  = -I/usr/local/include/openmpi
+FCFLAGS  = -I$(HOME)/mpich2/include
+#LDFLAGS  = -L/usr/local/lib/openmpi
+LDFLAGS  = -L$(HOME)/mpich2/lib
 
 LD  = $(FC)  # Linker to use. 
 
