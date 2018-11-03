@@ -2,13 +2,13 @@
 ! Conjugate gradient method for solving Poisson's equation by Yousef Saad, Iterative Methods for Sparse Linear Systems, p.200 a.6.18.
 
 subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,xflow,yflow,zflow,&
-                            xmin,xmax,ymin,ymax,zmin,zmax,dxyz,maxerr,maxit,iprocs,jprocs,kprocs,species,myid)
+                            xmin,xmax,ymin,ymax,zmin,zmax,dxyz,maxerr,maxit,iprocs,jprocs,kprocs,Nspecies,myid)
   use mpi
   implicit none
 
 
   logical, intent(in) :: xflow, yflow, zflow
-  integer, intent(in) :: Nx_local,Ny_local,Nz_local,maxit,iprocs,jprocs,kprocs,species,myid
+  integer, intent(in) :: Nx_local,Ny_local,Nz_local,maxit,iprocs,jprocs,kprocs,Nspecies,myid
   real*8, intent(in) :: Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,xmin,xmax,ymin,ymax,zmin,zmax,maxerr,dxyz(3)
   real*8, intent(in) :: C(Nx_local+2,Ny_local+2,Nz_local+2)
   real*8, intent(inout) :: U(Nx_local+2,Ny_local+2,Nz_local+2)

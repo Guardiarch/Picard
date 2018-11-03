@@ -4,7 +4,7 @@
 
 
 subroutine AdvanceVelocity(real_particles,int_particles,E,B0,Lx_min,Ly_min,Lz_min,dxyz,dt,v0,ve,eta,tB,sB,&
-             num_local,max_per_proc,species,Nx_local,Ny_local,Nz_local,fluid,gyration)
+             num_local,max_per_proc,Nspecies,Nx_local,Ny_local,Nz_local,fluid,gyration)
 
   implicit none
 
@@ -12,7 +12,7 @@ subroutine AdvanceVelocity(real_particles,int_particles,E,B0,Lx_min,Ly_min,Lz_mi
 ! Parameters  
   logical, intent(in) :: fluid(8), gyration(8)
 
-  integer, intent(in) :: num_local, max_per_proc, species, Nx_local, Ny_local, Nz_local
+  integer, intent(in) :: num_local, max_per_proc, Nspecies, Nx_local, Ny_local, Nz_local
   real*8, intent(in) :: Lx_min, Ly_min, Lz_min, dxyz(3), dt, v0(4,8), ve(4), eta(8)
 
   real*8, intent(in) :: tB(4,8), sB(4,8)
@@ -126,12 +126,12 @@ end subroutine AdvanceVelocity
 
 
 subroutine AdvanceVelocityExp(real_particles,int_particles,E,B0,Lx_min,Ly_min,Lz_min,dxyz,deltat,dt,v0,ve,eta,tB,&
-             num_local,max_per_proc,species,Nx_local,Ny_local,Nz_local,fluid,gyration)
+             num_local,max_per_proc,Nspecies,Nx_local,Ny_local,Nz_local,fluid,gyration)
 
 ! Parameters  
   logical, intent(in) :: fluid(8), gyration(8)
 
-  integer, intent(in) :: num_local, max_per_proc, species, Nx_local, Ny_local, Nz_local
+  integer, intent(in) :: num_local, max_per_proc, Nspecies, Nx_local, Ny_local, Nz_local
   real*8, intent(in) :: Lx_min, Ly_min, Lz_min, dxyz(3), deltat, dt, v0(4,8), ve(4), eta(8)
 
   real*8, intent(in) :: tB(4,8)
@@ -237,12 +237,12 @@ end subroutine AdvanceVelocityExp
 
 
 subroutine AdvanceVelocityImp(real_particles,int_particles,E,B0,Lx_min,Ly_min,Lz_min,dxyz,deltat,dt,v0,ve,eta,tB,&
-             num_local,max_per_proc,species,Nx_local,Ny_local,Nz_local,fluid,gyration)
+             num_local,max_per_proc,Nspecies,Nx_local,Ny_local,Nz_local,fluid,gyration)
 
 ! Parameters  
   logical, intent(in) :: fluid(8), gyration(8)
 
-  integer, intent(in) :: num_local, max_per_proc, species, Nx_local, Ny_local, Nz_local
+  integer, intent(in) :: num_local, max_per_proc, Nspecies, Nx_local, Ny_local, Nz_local
   real*8, intent(in) :: Lx_min, Ly_min, Lz_min, dxyz(3), deltat, dt, v0(4,8), ve(4), eta(8)
 
   real*8, intent(in) :: tB(4,8)

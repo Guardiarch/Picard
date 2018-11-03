@@ -1,17 +1,17 @@
 subroutine ParticlesGridify(N,C,real_particles,int_particles,Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,dxyz,&
-                   xmin,xmax,ymin,ymax,zmin,zmax,species,Nx_local,Ny_local,Nz_local,max_per_proc,num_local,&
+                   xmin,xmax,ymin,ymax,zmin,zmax,Nspecies,Nx_local,Ny_local,Nz_local,max_per_proc,num_local,&
                    xflow,yflow,zflow,iprocs,jprocs,kprocs,charge,n2p,myid) 
   use mpi
   implicit none
 
 
 ! Parameters
-  integer, intent(in) :: species, Nx_local, Ny_local, Nz_local, max_per_proc, iprocs, jprocs, kprocs, myid, num_local
+  integer, intent(in) :: Nspecies, Nx_local, Ny_local, Nz_local, max_per_proc, iprocs, jprocs, kprocs, myid, num_local
   logical, intent(in) :: xflow, yflow, zflow
   real*8, intent(in) :: Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,dxyz(3),xmin,xmax,ymin,ymax,zmin,zmax,charge(8),n2p(8)
   integer, intent(in) :: int_particles(max_per_proc)
   real*8, intent(in) :: real_particles(8,max_per_proc)
-  real*8, intent(out) :: N( species, Nx_local+2, Ny_local+2, Nz_local+2 )
+  real*8, intent(out) :: N( Nspecies, Nx_local+2, Ny_local+2, Nz_local+2 )
   real*8, intent(out) :: C( Nx_local+2, Ny_local+2, Nz_local+2 )
 !  real*8, intent(out) :: J( 3, Nx_local+2, Ny_local+2, Nz_local+2 )  ! Current density
       
@@ -126,11 +126,11 @@ subroutine ParticlesGridify(N,C,real_particles,int_particles,Lx_min,Lx_max,Ly_mi
 
 ! Z BOUNDARY
 
-  allocate( real_neg_send(species,  Nx_local+2,  Ny_local+2,  2) )
-  allocate( real_pos_send(species,  Nx_local+2,  Ny_local+2,  2) )
-  allocate( real_neg_recv(species,  Nx_local+2,  Ny_local+2,  2) )
-  allocate( real_pos_recv(species,  Nx_local+2,  Ny_local+2,  2) )
-  size_sendrecv        = (species)*(Nx_local+2)*(Ny_local+2)*(2)
+  allocate( real_neg_send(Nspecies,  Nx_local+2,  Ny_local+2,  2) )
+  allocate( real_pos_send(Nspecies,  Nx_local+2,  Ny_local+2,  2) )
+  allocate( real_neg_recv(Nspecies,  Nx_local+2,  Ny_local+2,  2) )
+  allocate( real_pos_recv(Nspecies,  Nx_local+2,  Ny_local+2,  2) )
+  size_sendrecv        = (Nspecies)*(Nx_local+2)*(Ny_local+2)*(2)
 
   real_neg_send(:,:,:,:) = N(:,:,:,1:2)
   real_pos_send(:,:,:,:) = N(:,:,:,Nz_local+1:Nz_local+2)
@@ -180,11 +180,11 @@ subroutine ParticlesGridify(N,C,real_particles,int_particles,Lx_min,Lx_max,Ly_mi
 
 ! Y BOUNDARY
 
-  allocate( real_neg_send(species,  Nx_local+2,  2,  Nz_local+2) )
-  allocate( real_pos_send(species,  Nx_local+2,  2,  Nz_local+2) )
-  allocate( real_neg_recv(species,  Nx_local+2,  2,  Nz_local+2) )
-  allocate( real_pos_recv(species,  Nx_local+2,  2,  Nz_local+2) )
-  size_sendrecv        = (species)*(Nx_local+2)*(2)*(Nz_local+2)
+  allocate( real_neg_send(Nspecies,  Nx_local+2,  2,  Nz_local+2) )
+  allocate( real_pos_send(Nspecies,  Nx_local+2,  2,  Nz_local+2) )
+  allocate( real_neg_recv(Nspecies,  Nx_local+2,  2,  Nz_local+2) )
+  allocate( real_pos_recv(Nspecies,  Nx_local+2,  2,  Nz_local+2) )
+  size_sendrecv        = (Nspecies)*(Nx_local+2)*(2)*(Nz_local+2)
 
   real_neg_send(:,:,:,:) = N(:,:,1:2,:)
   real_pos_send(:,:,:,:) = N(:,:,Ny_local+1:Ny_local+2,:)
@@ -233,11 +233,11 @@ subroutine ParticlesGridify(N,C,real_particles,int_particles,Lx_min,Lx_max,Ly_mi
 
 ! X BOUNDARY
 
-  allocate( real_neg_send(species,  2,  Ny_local+2,  Nz_local+2) )
-  allocate( real_pos_send(species,  2,  Ny_local+2,  Nz_local+2) )
-  allocate( real_neg_recv(species,  2,  Ny_local+2,  Nz_local+2) )
-  allocate( real_pos_recv(species,  2,  Ny_local+2,  Nz_local+2) )
-  size_sendrecv        = (species)*(2)*(Ny_local+2)*(Nz_local+2)
+  allocate( real_neg_send(Nspecies,  2,  Ny_local+2,  Nz_local+2) )
+  allocate( real_pos_send(Nspecies,  2,  Ny_local+2,  Nz_local+2) )
+  allocate( real_neg_recv(Nspecies,  2,  Ny_local+2,  Nz_local+2) )
+  allocate( real_pos_recv(Nspecies,  2,  Ny_local+2,  Nz_local+2) )
+  size_sendrecv        = (Nspecies)*(2)*(Ny_local+2)*(Nz_local+2)
 
   real_neg_send(:,:,:,:) = N(:,1:2,:,:)
   real_pos_send(:,:,:,:) = N(:,Nx_local+1:Nx_local+2,:,:)
@@ -285,7 +285,7 @@ subroutine ParticlesGridify(N,C,real_particles,int_particles,Lx_min,Lx_max,Ly_mi
   deallocate( real_pos_recv )
 
   
-  do pp = 1, species
+  do pp = 1, Nspecies
     C(:,:,:) = C(:,:,:) + N(pp,:,:,:)*charge(pp)
 !    J(1,:,:,:) = J(1,:,:,:) + F(pp,1,:,:,:)*charge(pp)  ! Current in x
 !    J(2,:,:,:) = J(2,:,:,:) + F(pp,2,:,:,:)*charge(pp)  ! Current in y

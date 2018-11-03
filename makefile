@@ -1,4 +1,4 @@
-OBJECTS =  picard.o AdvancePosition.o AdvanceVelocity.o BCfields.o BCinflow.o BCoutflow.o BCpotentials.o CalcDistance.o CalcEfield.o CalcEpotential.o ParticlesGridify.o ParticlesGridifyAll.o ParticlesInitialize.o ParticlesModify.o ParticlesProduce.o ParticlesTransfer.o Tools.o Write.o WriteWarnings.o
+OBJECTS =  picard.o AdvancePosition.o AdvanceVelocity.o BCfields.o BCinflow.o BCoutflow.o BCpotentials.o CalcDistance.o CalcEfield.o CalcEpotential.o ParticlesGridify.o ParticlesGridifyAll.o Initial.o ParticlesModify.o ParticlesProduce.o ParticlesTransfer.o Tools.o Dump.o WriteWarnings.o
 
 
 TARGET  = picard
@@ -8,7 +8,7 @@ FC       = $(HOME)/mpich2/bin/mpif90
 #OFLAGS   = -O3 # -mcmodel=medium -shared-intel
 OFLAGS   = -fast
 #FCFLAGS  = -I/usr/local/include/openmpi
-FCFLAGS  = -I$(HOME)/mpich2/include
+FCFLAGS  = #-I$(HOME)/mpich2/include
 #LDFLAGS  = -L/usr/local/lib/openmpi
 LDFLAGS  = -L$(HOME)/mpich2/lib
 

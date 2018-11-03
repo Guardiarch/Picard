@@ -7,7 +7,7 @@ subroutine Gaussian(u, v, t, m)
     real*8, intent(in)  :: v(3), t, m   ! [m/s], [K], [kg]
 
     real*8 :: a, pw
-    real*8, parameter :: kb   = 1.380650d-23
+    real*8, parameter :: kb   = 1.38064852d-23
 
     if (t .gt. 0.0d0 .and. m .gt. 0.0d0) then
 

@@ -1,11 +1,11 @@
 subroutine BCpotentials(U,C,D,xmin,xmax,ymin,ymax,zmin,zmax,Nx_local,Ny_local,Nz_local,Nx,Ny,Nz,&
-                        xflow,yflow,zflow,species,iprocs,jprocs,kprocs,myid)
+                        xflow,yflow,zflow,Nspecies,iprocs,jprocs,kprocs,myid)
   use mpi
   implicit none
 
 
   logical, intent(in) :: xflow, yflow, zflow
-  integer, intent(in) :: Nx_local, Ny_local, Nz_local, Nx, Ny, Nz, species, iprocs, jprocs, kprocs, myid
+  integer, intent(in) :: Nx_local, Ny_local, Nz_local, Nx, Ny, Nz, Nspecies, iprocs, jprocs, kprocs, myid
   real*8, intent(in) :: xmin, xmax, ymin, ymax, zmin, zmax
   real*8, intent(in) :: D(2*Nx+1,2*Ny+1,2*Nz+1)
   real*8, intent(in) :: C(Nx_local+2, Ny_local+2, Nz_local+2)

@@ -1,6 +1,6 @@
 
 subroutine BCinflow(real_particles,int_particles,Lx_min,Ly_min,Lz_min,Lx_max,Ly_max,Lz_max,dxyz,kelvin,mass,v0,ve,&
-                               max_per_proc,num_local,ppc,epp,hpp,ipp,species,Nx_local,Ny_local,Nz_local,&
+                               max_per_proc,num_local,ppc,epp,hpp,ipp,Nspecies,Nx_local,Ny_local,Nz_local,&
                                xmin,xmax,ymin,ymax,zmin,zmax,tB,xflow,yflow,zflow)
 
 
@@ -8,7 +8,7 @@ subroutine BCinflow(real_particles,int_particles,Lx_min,Ly_min,Lz_min,Lx_max,Ly_
 
 ! Parameters
   logical, intent(in) :: xflow, yflow, zflow
-  integer, intent(in) :: max_per_proc, ppc(8), epp(8), hpp(8), ipp(8), species, Nx_local, Ny_local, Nz_local
+  integer, intent(in) :: max_per_proc, ppc(8), epp(8), hpp(8), ipp(8), Nspecies, Nx_local, Ny_local, Nz_local
   real*8, intent(in) :: Lx_min, Ly_min, Lz_min, Lx_max, Ly_max, Lz_max, dxyz(3), kelvin(8), mass(8), v0(4,8), ve(4), &
                         xmin, xmax, ymin, ymax, zmin, zmax, tB(4,8)
 
@@ -60,7 +60,7 @@ do kk = 2-zflow_neg, Nz_local+1+zflow_pos
       y0 = Ly_min + dxyz(2)*(jj-2)
       z0 = Lz_min + dxyz(3)*(kk-2)
       ! Loop through all ions
-      do ss = 1, species
+      do ss = 1, Nspecies
 
         ! Loop through all particles to be created
         do pp = 1, ipp(ss)
@@ -131,7 +131,7 @@ do kk = 2-zflow_neg, Nz_local+1+zflow_pos
       y0 = Ly_min + dxyz(2)*(jj-2)
       z0 = Lz_min + dxyz(3)*(kk-2)
       ! Loop through all ions
-      do ss = 1, species
+      do ss = 1, Nspecies
 
         ! Loop through all particles to be created
         do pp = 1, ipp(ss)
@@ -201,7 +201,7 @@ do kk = 2, Nz_local+1+zflow_pos
       y0 = Ly_max
       z0 = Lz_min + dxyz(3)*(kk-2)
       ! Loop through all ions
-      do ss = 2, species
+      do ss = 2, Nspecies
 
         ! Loop through all particles to be created
         do pp = 1, ipp(ss)
@@ -271,7 +271,7 @@ do kk = 2-zflow_neg, Nz_local+1
       y0 = Ly_min - dxyz(2)
       z0 = Lz_min + dxyz(3)*(kk-2)
       ! Loop through all ions
-      do ss = 2, species
+      do ss = 2, Nspecies
 
         ! Loop through all particles to be created
         do pp = 1, ipp(ss)
@@ -341,7 +341,7 @@ do jj = 2-yflow_neg, Ny_local+1
       y0 = Ly_min + dxyz(2)*(jj-2)
       z0 = Lz_max
       ! Loop through all ions
-      do ss = 2, species
+      do ss = 2, Nspecies
 
         ! Loop through all particles to be created
         do pp = 1, ipp(ss)
@@ -411,7 +411,7 @@ do jj = 2, Ny_local+1+yflow_pos
       y0 = Ly_min + dxyz(2)*(jj-2)
       z0 = Lz_min - dxyz(3)
       ! Loop through all ions
-      do ss = 2, species
+      do ss = 2, Nspecies
 
         ! Loop through all particles to be created
         do pp = 1, ipp(ss)

@@ -154,7 +154,7 @@ if __name__ == '__main__':
     except:
         procname = ''
     
-    root                = '/media/jesper/BANK_0001/picard/' + moon + '/' + moon + '_' + version_number
+    root                = '/home/herbert/picard/a1'
 #    root                = os.path.dirname(os.path.abspath(__file__))
 
     save                = root + '/save'
