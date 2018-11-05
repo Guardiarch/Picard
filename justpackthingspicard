@@ -1,0 +1,7 @@
+echo 'starting conversion at ' `date`
+tar cfz density.tgz density      ; echo 'density.tgz'
+tar cfz Efield.tgz Efield        ; echo 'Efield.tgz'
+tar cfz flux.tgz flux            ; echo 'flux.tgz'
+tar cfz particles.tgz particles  ; echo 'particles.tgz'
+tar cfz potential.tgz potential  ; echo 'potential.tgz'
+echo 'finished conversion at ' `date`

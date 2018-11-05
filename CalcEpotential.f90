@@ -41,15 +41,15 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
                - mod(myid+iprocs*jprocs*kprocs,               iprocs*jprocs*kprocs))
 
 
-  ax = 0.5d0*( (dxyz(1)*dxyz(2))**2 + (dxyz(1)*dxyz(3))**2 + (dxyz(2)*dxyz(3))**2 )**(-1) * (dxyz(2)*dxyz(3))**2
-  ay = 0.5d0*( (dxyz(1)*dxyz(2))**2 + (dxyz(1)*dxyz(3))**2 + (dxyz(2)*dxyz(3))**2 )**(-1) * (dxyz(1)*dxyz(3))**2
-  az = 0.5d0*( (dxyz(1)*dxyz(2))**2 + (dxyz(1)*dxyz(3))**2 + (dxyz(2)*dxyz(3))**2 )**(-1) * (dxyz(1)*dxyz(2))**2
-  af = 0.5d0*( (dxyz(1)*dxyz(2))**2 + (dxyz(1)*dxyz(3))**2 + (dxyz(2)*dxyz(3))**2 )**(-1) * (dxyz(1)*dxyz(2)*dxyz(3))**2
+  ax = 0.5d0*( (dxyz(1)*dxyz(2))**2.0d0 + (dxyz(1)*dxyz(3))**2.0d0 + (dxyz(2)*dxyz(3))**2.0d0 )**(-1.0d0) * (dxyz(2)*dxyz(3))**2.0d0
+  ay = 0.5d0*( (dxyz(1)*dxyz(2))**2.0d0 + (dxyz(1)*dxyz(3))**2.0d0 + (dxyz(2)*dxyz(3))**2.0d0 )**(-1.0d0) * (dxyz(1)*dxyz(3))**2.0d0
+  az = 0.5d0*( (dxyz(1)*dxyz(2))**2.0d0 + (dxyz(1)*dxyz(3))**2.0d0 + (dxyz(2)*dxyz(3))**2.0d0 )**(-1.0d0) * (dxyz(1)*dxyz(2))**2.0d0
+  af = 0.5d0*( (dxyz(1)*dxyz(2))**2.0d0 + (dxyz(1)*dxyz(3))**2.0d0 + (dxyz(2)*dxyz(3))**2.0d0 )**(-1.0d0) * (dxyz(1)*dxyz(2)*dxyz(3))**2.0d0
 
   
-  b(:,:,:) = -C(:,:,:)*(dV*eps0)**(-1)
+  b(:,:,:) = -C(:,:,:)*(dV*eps0)**(-1.0d0)
 
-  b_local = sum( b(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)**2 )
+  b_local = sum( b(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)**2.0d0 )
   call MPI_allreduce( b_local, b_global, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
   b_global_sqrt = dsqrt(b_global)
   r_global = 1.0d0*b_global
@@ -83,16 +83,16 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
     res(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1) = b(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1) - &
                                               ( ( U(3:Nx_local+2,2:Ny_local+1,2:Nz_local+1) &
                                                 + U(1:Nx_local+0,2:Ny_local+1,2:Nz_local+1) &
-                                          - 2.0d0*U(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1) )/dxyz(1)**2 &
+                                          - 2.0d0*U(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1) )/dxyz(1)**2.0d0 &
                                               + ( U(2:Nx_local+1,3:Ny_local+2,2:Nz_local+1) &
                                                 + U(2:Nx_local+1,1:Ny_local+0,2:Nz_local+1) &
-                                          - 2.0d0*U(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1) )/dxyz(2)**2 &
+                                          - 2.0d0*U(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1) )/dxyz(2)**2.0d0 &
                                               + ( U(2:Nx_local+1,2:Ny_local+1,3:Nz_local+2) &
                                                 + U(2:Nx_local+1,2:Ny_local+1,1:Nz_local+0) &
-                                          - 2.0d0*U(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1) )/dxyz(3)**2 )
+                                          - 2.0d0*U(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1) )/dxyz(3)**2.0d0 )
 
 ! Residual
-    r_local = sum( res(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)**2 )
+    r_local = sum( res(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)**2.0d0 )
     call MPI_allreduce( r_local, r_global, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
 
 ! Send potential around
