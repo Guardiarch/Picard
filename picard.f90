@@ -194,7 +194,7 @@ program picard
   writeParticles_interval = dt*50000  ! interval of particle writing to disk
   writeFields_interval = dt*500       ! interval of field writing to disk
   writeOutput_interval = 100          ! interval of default output writing
-  maxerr = 2.0d0**(-16)               ! maximum error in Poisson solver
+  maxerr = 2.0d0**(-16.0d0)           ! maximum error in Poisson solver
 !!$  xmin = -240.0d0  ! physical domain
 !!$  ymin = -240.0d0  ! physical domain
 !!$  zmin = -240.0d0  ! physical domain
@@ -203,9 +203,9 @@ program picard
 !!$  zmax =  240.0d0  ! physical domain
 !!$  dt   =  4.0d-7   ! time step
 !!$  writeParticles_interval = dt*50000  ! interval of particle writing to disk
-!!$  writeFields_interval = dt*1     ! interval of field writing to disk
-!!$  writeOutput_interval = 1          ! interval of default output writing
-!!$  maxerr = 2.0d0**(-16)               ! maximum error in Poisson solver
+!!$  writeFields_interval = dt*1         ! interval of field writing to disk
+!!$  writeOutput_interval = 1            ! interval of default output writing
+!!$  maxerr = 2.0d0**(-16.0d0)           ! maximum error in Poisson solver
 
 ! ZERO B-FIELD FOR CHOSEN SPECIES. TRUE: F=q(E+vxB). FALSE: F=qE
   gyration(1)       = .true.      ! e-
@@ -310,7 +310,7 @@ program picard
 
 ! Set production rate of H2O [#/s]
   Qn(2) = 0.0d0     ! H+
-  Qn(3) = (400.0d0)**(-3.0d0)*1.99d26    !  2.59d28 *R^(-5.18) H2O+
+  Qn(3) = (400.0d0)**(-3.0d0)*8.746d25    !  2.59d28 *R^(-5.18) H2O+
   Qn(4) = 0.0d0     ! He++
   Qn(5) = 0.0d0     ! CO2+
   Qn(6) = 0.0d0
@@ -418,7 +418,7 @@ program picard
   charge(1)         = -ec
   charge(2)         = ec
   density(2:)       = density(2:)*dble(ppc(2:))/dble(max(ppc(2:),1))
-  density(1)        = sum( -density(2:)*charge(2:) )*charge(1)**(-1)
+  density(1)        = sum( -density(2:)*charge(2:) )*charge(1)**(-1.0d0)
   do ss = 1, 8
     if (density(ss) .le. 0.0d0 .or. Nspecies .lt. ss) then
       ppc(ss) = 0
@@ -441,7 +441,7 @@ program picard
   n2p               = 0.0d0
   do ss = 1, 8
     if (ppc(ss) .gt. 0) then
-      n2p(ss)       = dV*density(ss)*dble(ppc(ss))**(-1)
+      n2p(ss)       = dV*density(ss)*dble(ppc(ss))**(-1.0d0)
     else
       n2p(ss)       = n2p(1)
     end if
@@ -466,10 +466,10 @@ program picard
        hpp(:)*n2p(2)*mass(2)) )
 
   do ss= 1, 8
-    v0(4,ss) = dsqrt( sum( v0(1:3,ss)**2 ) )
+    v0(4,ss) = dsqrt( sum( v0(1:3,ss)**2.0d0 ) )
   end do
-  ve(4)   = dsqrt( sum( ve(1:3)**2 ) )
-  B0(4)   = dsqrt( sum( B0(1:3)**2 ) )
+  ve(4)   = dsqrt( sum( ve(1:3)**2.0d0 ) )
+  B0(4)   = dsqrt( sum( B0(1:3)**2.0d0 ) )
   B(1,:,:,:) = B0(1)
   B(2,:,:,:) = B0(2)
   B(3,:,:,:) = B0(3)
@@ -477,7 +477,7 @@ program picard
   E0(1) = ve(3)*B0(2)-ve(2)*B0(3)
   E0(2) = ve(1)*B0(3)-ve(3)*B0(1)
   E0(3) = ve(2)*B0(1)-ve(1)*B0(2)
-  E0(4) = dsqrt( sum( E0(1:3)**2 ) )
+  E0(4) = dsqrt( sum( E0(1:3)**2.0d0 ) )
 
 ! Initialize Distance matrix.
   call CalcDistance(D,Nx,Ny,Nz,dxyz,xflow,yflow,zflow)   
@@ -513,10 +513,10 @@ program picard
     end if
   end do
 
-  sB(1,:) = 2.0d0*tB(1,:)/(1.0d0+tB(4,:)**2)
-  sB(2,:) = 2.0d0*tB(2,:)/(1.0d0+tB(4,:)**2)
-  sB(3,:) = 2.0d0*tB(3,:)/(1.0d0+tB(4,:)**2)
-  sB(4,:) = 2.0d0*tB(4,:)/(1.0d0+tB(4,:)**2)
+  sB(1,:) = 2.0d0*tB(1,:)/(1.0d0+tB(4,:)**2.0d0)
+  sB(2,:) = 2.0d0*tB(2,:)/(1.0d0+tB(4,:)**2.0d0)
+  sB(3,:) = 2.0d0*tB(3,:)/(1.0d0+tB(4,:)**2.0d0)
+  sB(4,:) = 2.0d0*tB(4,:)/(1.0d0+tB(4,:)**2.0d0)
 
 
 ! Diagnostics
@@ -526,10 +526,10 @@ program picard
   uE_global     = 0.0d0
   uP_local      = 0.0d0
   uP_global     = 0.0d0
-  uE0_global    = 0.5d0*( E0(4)**2*eps0 ) * Lx*Ly*Lz
-  uB0_global    = 0.5d0*( B0(4)**2/mu0  ) * Lx*Ly*Lz
+  uE0_global    = 0.5d0*( E0(4)**2.0d0*eps0 ) * Lx*Ly*Lz
+  uB0_global    = 0.5d0*( B0(4)**2.0d0/mu0  ) * Lx*Ly*Lz
   uEB0_global   = uE0_global + uB0_global
-  uP0_global    = 0.5d0*sum(  density(:)*( mass(:)*v0(4,:)**2 + &
+  uP0_global    = 0.5d0*sum(  density(:)*( mass(:)*v0(4,:)**2.0d0 + &
        3.0d0*kb*kelvin(:) )  ) * Lx*Ly*Lz  ! Addition of both bulk and
                                            ! temperature (not integrated)
   u0_global     = uEB0_global + uP0_global
@@ -599,7 +599,7 @@ program picard
     call MPI_barrier( MPI_comm_world, ierr)
     if (DEBUG) then
        call DumpFields( U, N, F, E, Nx_local, Ny_local, Nz_local, &
-            iter_start, Nspecies, myid )
+            iter_start, Nspecies, dV, myid )
     else
       writeFields_iteration = writeFields_iteration + 1
     end if
@@ -700,7 +700,7 @@ program picard
                   Nx_local,Ny_local,Nz_local,max_per_proc,num_local,&
                   xflow,yflow,zflow,iprocs,jprocs,kprocs,charge,n2p,myid)
              call DumpFields( U, N, F, E, Nx_local, Ny_local, Nz_local, &
-                  iteration, Nspecies, myid )
+                  iteration, Nspecies, dV, myid )
           end if
 
           call AdvanceVelocityExp(real_particles,int_particles,E,B0, &
@@ -734,7 +734,7 @@ program picard
         write (*,*) 'The first iteration was a success!'
         write (*,*) ' '
         write (*,*) '****************************************************************'
-        write (*,*) '   ITER           TIME   MPI_RANK  NUM_LOCAL NUM_GLOBAL    PART_ENERGY       E_ENERGY       B_ENERGY'
+        write (*,*) '   ITER           TIME   MPI_RANK  NUM_LOCAL  NUM_GLOBAL    PART_ENERGY       E_ENERGY       B_ENERGY'
       end if
     end if
 
@@ -744,28 +744,28 @@ program picard
        call MPI_reduce( num_local, num_global, 1, MPI_INT, MPI_SUM, 0, &
             MPI_comm_world, ierr )
 
-       uB_local = sum( B(:,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1 )**2 ) &
+       uB_local = sum( B(:,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1 )**2.0d0 ) &
             *0.5d0/mu0*dV
        call MPI_reduce( uB_local, uB_global, 1, MPI_DOUBLE_PRECISION, &
             MPI_SUM, 0, MPI_comm_world, ierr )
       
-       uE_local = sum(  (E(1,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)+E0(1))**2 &
-                      + (E(2,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)+E0(2))**2 &
-                      + (E(3,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)+E0(3))**2 &
+       uE_local=sum((E(1,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)+E0(1))**2.0d0 &
+            + (E(2,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)+E0(2))**2.0d0 &
+            + (E(3,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)+E0(3))**2.0d0 &
                       )*0.5d0*eps0*dV
        call MPI_reduce( uE_local, uE_global, 1, MPI_DOUBLE_PRECISION, &
             MPI_SUM, 0, MPI_comm_world, ierr )
 
        uP_local = sum(  n2p(int_particles(1:num_local))* &
             mass(int_particles(1:num_local))*&
-            ( real_particles(4,1:num_local)**2 &
-            + real_particles(5,1:num_local)**2 &
-            + real_particles(6,1:num_local)**2 )  )*0.5d0
+            ( real_particles(4,1:num_local)**2.0d0 &
+            + real_particles(5,1:num_local)**2.0d0 &
+            + real_particles(6,1:num_local)**2.0d0 )  )*0.5d0
        call MPI_reduce( uP_local, uP_global, 1, MPI_DOUBLE_PRECISION, &
             MPI_SUM, 0, MPI_comm_world, ierr )
 
        if (myid .eq. 0) then
-          write(*,fmt='(I8,a,E12.6,a,I8,a,I8,a,I8,a,E12.6,a,E12.6,a,E12.6)') &
+          write(*,fmt='(I8,a,E12.6,a,I8,a,I8,a,I9,a,E12.6,a,E12.6,a,E12.6)') &
                iteration,'   ',time,'   ',myid,'   ',num_local,'   ', &
                num_global,'   ',uP_global/u0_global,'   ',&
                uE_global/u0_global,'   ',uB_global/u0_global
