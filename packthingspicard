@@ -1,0 +1,22 @@
+echo 'starting data move and directory rebuild at ' `date`
+TheDate=`date +%Y%m%d%H%M`                                
+PackageName=package$TheDate                               
+echo The package directory is $PackageName                
+mv outp $PackageName                                      
+mkdir outp                                                
+mkdir outp/datfiles                                       
+mkdir outp/datfiles/density
+mkdir outp/datfiles/Efield                                
+mkdir outp/datfiles/flux
+mkdir outp/datfiles/particles
+mkdir outp/datfiles/potential
+
+cd $PackageName/datfiles
+
+echo 'starting conversion at ' `date`
+tar cfz density.tgz density      ; echo 'density.tgz'
+tar cfz Efield.tgz Efield        ; echo 'Efield.tgz'
+tar cfz flux.tgz flux            ; echo 'flux.tgz'
+tar cfz particles.tgz particles  ; echo 'particles.tgz'
+tar cfz potential.tgz potential  ; echo 'potential.tgz'
+echo 'finished conversion at ' `date`
