@@ -1,4 +1,3 @@
-
 subroutine Gaussian(u, v, t, m)
     ! U is a random velocity from the Maxwellian with bulk velocity V, 
     ! and temperature T for a specie of mass M. 
@@ -27,6 +26,8 @@ subroutine Gaussian(u, v, t, m)
 
 end subroutine Gaussian
 
+!------------------------------------------------------------------------
+
 subroutine normal(u)
     ! Gaussian distribution by Box-Muller. 
     ! We are wasting one random nmber, see 001219/boxmuller.c
@@ -46,4 +47,25 @@ subroutine normal(u)
     end do
     u = dsqrt(-2.0d0*dlog(r2))*dsin(tau*r1)
 end subroutine normal
+
+!------------------------------------------------------------------------
+
+! This function gives us an ion density following Galand et al. (2016)
+! with the exponential in the Haser model approximated by unity.
+
+real*8 function Galand(nu, Q, r, nucleusradius, u)
+
+  implicit none
+
+  real*8, intent(in) :: nu, Q, r, nucleusradius, u
+
+  real*8 pi
+
+  parameter ( pi = 3.141592653589793d0 )
+
+  Galand = nu * Q * (r-nucleusradius) / (4.0d0*pi*r**2.0d0*u**2.0d0)
+
+end function Galand
+
+!------------------------------------------------------------------------
 

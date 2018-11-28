@@ -1,4 +1,4 @@
-OBJECTS =  picard.o AdvancePosition.o AdvanceVelocity.o BCfields.o BCinflow.o BCoutflow.o BCpotentials.o CalcDistance.o CalcEfield.o CalcEpotential.o ParticlesGridify.o ParticlesGridifyAll.o Initial.o ParticlesModify.o ParticlesProduce.o ParticlesTransfer.o Tools.o Dump.o WriteWarnings.o
+OBJECTS =  SpecificTypes.o picard.o AdvancePosition.o AdvanceVelocity.o BCfields.o BCinflow.o BCoutflow.o BCpotentials.o CalcDistance.o CalcEfield.o CalcEpotential.o ParticlesGridify.o ParticlesGridifyAll.o Initial.o ParticlesTransfer.o Tools.o Dump.o
 
 
 TARGET  = picard
@@ -23,10 +23,10 @@ $(TARGET): $(OBJECTS)
 
 .PHONY: clean
 clean_all:
-	@rm -rf $(OBJECTS) $(TARGET) core
+	@rm -rf $(OBJECTS) $(TARGET) core *.mod *~
 
 clean: 
-	@rm -rf $(OBJECTS) core
+	@rm -rf $(OBJECTS) core *.mod *~
 
 # Rule used to generate object files from source code:
 %.o: %.f

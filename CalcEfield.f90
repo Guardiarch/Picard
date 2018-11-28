@@ -1,5 +1,3 @@
-
-
 subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
   use mpi
   implicit none
@@ -227,6 +225,10 @@ subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,ipro
  
   call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
 
+  deallocate( real_neg_send )
+  deallocate( real_pos_send )
+  deallocate( real_neg_recv )
+  deallocate( real_pos_recv )
 
   return
 end subroutine CalcEfield

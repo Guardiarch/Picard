@@ -1,6 +1,5 @@
-
-
-subroutine BCfields(E,U,B0,E0,Nx_local,Ny_local,Nz_local,xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
+subroutine BCfields(E,U,B0,E0,Nx_local,Ny_local,Nz_local, &
+     xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
 
   implicit none
 

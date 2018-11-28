@@ -1,19 +1,19 @@
+subroutine BCinflow(particles,Lx_min,Ly_min,Lz_min,Lx_max,Ly_max,Lz_max, &
+     dxyz,ve,max_per_proc,num_local,Nspecies,Nx_local,Ny_local,Nz_local,&
+     xmin,xmax,ymin,ymax,zmin,zmax,xflow,yflow,zflow,species)
 
-subroutine BCinflow(real_particles,int_particles,Lx_min,Ly_min,Lz_min,Lx_max,Ly_max,Lz_max,dxyz,kelvin,mass,v0,ve,&
-                               max_per_proc,num_local,ppc,epp,hpp,ipp,Nspecies,Nx_local,Ny_local,Nz_local,&
-                               xmin,xmax,ymin,ymax,zmin,zmax,tB,xflow,yflow,zflow)
 
-
+  use SpecificTypes
   implicit none
 
 ! Parameters
   logical, intent(in) :: xflow, yflow, zflow
-  integer, intent(in) :: max_per_proc, ppc(8), epp(8), hpp(8), ipp(8), Nspecies, Nx_local, Ny_local, Nz_local
-  real*8, intent(in) :: Lx_min, Ly_min, Lz_min, Lx_max, Ly_max, Lz_max, dxyz(3), kelvin(8), mass(8), v0(4,8), ve(4), &
-                        xmin, xmax, ymin, ymax, zmin, zmax, tB(4,8)
-
-  real*8, intent(inout) :: real_particles(8,max_per_proc)
-  integer, intent(inout) :: int_particles(max_per_proc), num_local
+  integer, intent(in) :: max_per_proc, Nspecies, Nx_local, Ny_local, Nz_local
+  real*8, intent(in) :: Lx_min, Ly_min, Lz_min, Lx_max, Ly_max, Lz_max, &
+       dxyz(3), ve(4), xmin, xmax, ymin, ymax, zmin, zmax
+  integer, intent(inout) :: num_local
+  type(particlearrays) particles
+  type(particlespecies) species(Nspecies)
 
 ! Local variables
   integer ee, pp, ss, ii, jj, kk, yflow_neg, zflow_neg, yflow_pos, zflow_pos
@@ -63,55 +63,62 @@ do kk = 2-zflow_neg, Nz_local+1+zflow_pos
       do ss = 1, Nspecies
 
         ! Loop through all particles to be created
-        do pp = 1, ipp(ss)
-          int_particles(num_local+1)        = ss
+        do pp = 1, species(ss)%ipp
+          particles%species(num_local+1)        = ss
           call random_number(rndp)
-          real_particles(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
-          real_particles(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
-          real_particles(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
-          call Gaussian( real_particles(4:6,num_local+1),v0(1:3,ss),kelvin(ss),mass(ss) )
+          particles%coordinates(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
+          particles%coordinates(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
+          particles%coordinates(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
+          call Gaussian( particles%coordinates(4:6,num_local+1), &
+               species(ss)%v0(1:3),species(ss)%upstreamkelvin,species(ss)%mass )
           ! Advance velocity dt/2
-          vmin(1:3) = real_particles(4:6,num_local+1) - ve(1:3)
-          vmid(1) = vmin(1) + vmin(2)*tB(3,int_particles(num_local+1))-vmin(3)*tB(2,int_particles(num_local+1))
-          vmid(2) = vmin(2) + vmin(3)*tB(1,int_particles(num_local+1))-vmin(1)*tB(3,int_particles(num_local+1))
-          vmid(3) = vmin(3) + vmin(1)*tB(2,int_particles(num_local+1))-vmin(2)*tB(1,int_particles(num_local+1))
+          vmin(1:3) = particles%coordinates(4:6,num_local+1) - ve(1:3)
+          vmid(1) = vmin(1) + &
+               vmin(2)*species(particles%species(num_local+1))%tB(3) - &
+               vmin(3)*species(particles%species(num_local+1))%tB(2)
+          vmid(2) = vmin(2) + &
+               vmin(3)*species(particles%species(num_local+1))%tB(1) - &
+               vmin(1)*species(particles%species(num_local+1))%tB(3)
+          vmid(3) = vmin(3) + &
+               vmin(1)*species(particles%species(num_local+1))%tB(2) - &
+               vmin(2)*species(particles%species(num_local+1))%tB(1)
           if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
             vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
           end if
-          real_particles(4:6,num_local+1) = vmid(1:3) + ve(1:3)
+          particles%coordinates(4:6,num_local+1) = vmid(1:3) + ve(1:3)
 
           ! For each ion, create as many electrons as its charged state.
-          do ee = 1, epp(ss)
-            int_particles(num_local+1+ee)         = 1
-            real_particles(:,num_local+1+ee)      = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+ee),v0(1:3,ss),kelvin(1),mass(1) )
+          do ee = 1, species(ss)%epp
+            particles%species(num_local+1+ee)         = 1
+            particles%coordinates(:,num_local+1+ee)      = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+ee),species(ss)%v0(1:3),species(1)%upstreamkelvin,species(1)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,1)-vmin(3)*tB(2,1)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,1)-vmin(1)*tB(3,1)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,1)-vmin(2)*tB(1,1)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(1)%tB(3)-vmin(3)*species(1)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(1)%tB(1)-vmin(1)*species(1)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(1)%tB(2)-vmin(2)*species(1)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
           end do
           
-          do ee = 1, hpp(ss)
-            int_particles(num_local+1+epp(ss)+ee)    = 2
-            real_particles(:,num_local+1+epp(ss)+ee) = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+epp(ss)+ee),v0(1:3,ss),kelvin(2),mass(2) )
+          do ee = 1, species(ss)%hpp
+            particles%species(num_local+1+species(ss)%epp+ee)    = 2
+            particles%coordinates(:,num_local+1+species(ss)%epp+ee) = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+species(ss)%epp+ee),species(ss)%v0(1:3),species(2)%upstreamkelvin,species(2)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+epp(ss)+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,2)-vmin(3)*tB(2,2)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,2)-vmin(1)*tB(3,2)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,2)-vmin(2)*tB(1,2)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(2)%tB(3)-vmin(3)*species(2)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(2)%tB(1)-vmin(1)*species(2)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(2)%tB(2)-vmin(2)*species(2)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+epp(ss)+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) = vmid(1:3) + ve(1:3)
           end do
 
-          num_local = num_local+1+epp(ss)+hpp(ss)
+          num_local = num_local+1+species(ss)%epp+species(ss)%hpp
 
         end do
       end do
@@ -134,55 +141,61 @@ do kk = 2-zflow_neg, Nz_local+1+zflow_pos
       do ss = 1, Nspecies
 
         ! Loop through all particles to be created
-        do pp = 1, ipp(ss)
-          int_particles(num_local+1)        = ss
+        do pp = 1, species(ss)%ipp
+          particles%species(num_local+1)        = ss
           call random_number(rndp)
-          real_particles(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
-          real_particles(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
-          real_particles(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
-          call Gaussian( real_particles(4:6,num_local+1),v0(1:3,ss),kelvin(ss),mass(ss) )
+          particles%coordinates(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
+          particles%coordinates(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
+          particles%coordinates(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
+          call Gaussian( particles%coordinates(4:6,num_local+1),species(ss)%v0(1:3),species(ss)%upstreamkelvin,species(ss)%mass )
           ! Advance velocity dt/2
-          vmin(1:3) = real_particles(4:6,num_local+1) - ve(1:3)
-          vmid(1) = vmin(1) + vmin(2)*tB(3,int_particles(num_local+1))-vmin(3)*tB(2,int_particles(num_local+1))
-          vmid(2) = vmin(2) + vmin(3)*tB(1,int_particles(num_local+1))-vmin(1)*tB(3,int_particles(num_local+1))
-          vmid(3) = vmin(3) + vmin(1)*tB(2,int_particles(num_local+1))-vmin(2)*tB(1,int_particles(num_local+1))
+          vmin(1:3) = particles%coordinates(4:6,num_local+1) - ve(1:3)
+          vmid(1) = vmin(1) + &
+               vmin(2)*species(particles%species(num_local+1))%tB(3) - &
+               vmin(3)*species(particles%species(num_local+1))%tB(2)
+          vmid(2) = vmin(2) + &
+               vmin(3)*species(particles%species(num_local+1))%tB(1) - &
+               vmin(1)*species(particles%species(num_local+1))%tB(3)
+          vmid(3) = vmin(3) + &
+               vmin(1)*species(particles%species(num_local+1))%tB(2) - &
+               vmin(2)*species(particles%species(num_local+1))%tB(1)
           if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
             vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
           end if
-          real_particles(4:6,num_local+1) = vmid(1:3) + ve(1:3)
+          particles%coordinates(4:6,num_local+1) = vmid(1:3) + ve(1:3)
 
           ! For each ion, create as many electrons as its charged state.
-          do ee = 1, epp(ss)
-            int_particles(num_local+1+ee)         = 1
-            real_particles(:,num_local+1+ee)      = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+ee),v0(1:3,ss),kelvin(1),mass(1) )
+          do ee = 1, species(ss)%epp
+            particles%species(num_local+1+ee)         = 1
+            particles%coordinates(:,num_local+1+ee)      = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+ee),species(ss)%v0(1:3),species(1)%upstreamkelvin,species(1)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,1)-vmin(3)*tB(2,1)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,1)-vmin(1)*tB(3,1)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,1)-vmin(2)*tB(1,1)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(1)%tB(3)-vmin(3)*species(1)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(1)%tB(1)-vmin(1)*species(1)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(1)%tB(2)-vmin(2)*species(1)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
           end do
           
-          do ee = 1, hpp(ss)
-            int_particles(num_local+1+epp(ss)+ee)    = 2
-            real_particles(:,num_local+1+epp(ss)+ee) = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+epp(ss)+ee),v0(1:3,ss),kelvin(2),mass(2) )
+          do ee = 1, species(ss)%hpp
+            particles%species(num_local+1+species(ss)%epp+ee)    = 2
+            particles%coordinates(:,num_local+1+species(ss)%epp+ee) = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+species(ss)%epp+ee),species(ss)%v0(1:3),species(2)%upstreamkelvin,species(2)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+epp(ss)+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,2)-vmin(3)*tB(2,2)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,2)-vmin(1)*tB(3,2)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,2)-vmin(2)*tB(1,2)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(2)%tB(3)-vmin(3)*species(2)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(2)%tB(1)-vmin(1)*species(2)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(2)%tB(2)-vmin(2)*species(2)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+epp(ss)+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) = vmid(1:3) + ve(1:3)
           end do
 
-          num_local = num_local+1+epp(ss)+hpp(ss)
+          num_local = num_local+1+species(ss)%epp+species(ss)%hpp
 
         end do
       end do
@@ -204,55 +217,61 @@ do kk = 2, Nz_local+1+zflow_pos
       do ss = 2, Nspecies
 
         ! Loop through all particles to be created
-        do pp = 1, ipp(ss)
-          int_particles(num_local+1)        = ss
+        do pp = 1, species(ss)%ipp
+          particles%species(num_local+1)        = ss
           call random_number(rndp)
-          real_particles(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
-          real_particles(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
-          real_particles(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
-          call Gaussian( real_particles(4:6,num_local+1),v0(1:3,ss),kelvin(ss),mass(ss) )
+          particles%coordinates(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
+          particles%coordinates(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
+          particles%coordinates(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
+          call Gaussian( particles%coordinates(4:6,num_local+1),species(ss)%v0(1:3),species(ss)%upstreamkelvin,species(ss)%mass )
           ! Advance velocity dt/2
-          vmin(1:3) = real_particles(4:6,num_local+1) - ve(1:3)
-          vmid(1) = vmin(1) + vmin(2)*tB(3,int_particles(num_local+1))-vmin(3)*tB(2,int_particles(num_local+1))
-          vmid(2) = vmin(2) + vmin(3)*tB(1,int_particles(num_local+1))-vmin(1)*tB(3,int_particles(num_local+1))
-          vmid(3) = vmin(3) + vmin(1)*tB(2,int_particles(num_local+1))-vmin(2)*tB(1,int_particles(num_local+1))
+          vmin(1:3) = particles%coordinates(4:6,num_local+1) - ve(1:3)
+          vmid(1) = vmin(1) + &
+               vmin(2)*species(particles%species(num_local+1))%tB(3) - &
+               vmin(3)*species(particles%species(num_local+1))%tB(2)
+          vmid(2) = vmin(2) + &
+               vmin(3)*species(particles%species(num_local+1))%tB(1) - &
+               vmin(1)*species(particles%species(num_local+1))%tB(3)
+          vmid(3) = vmin(3) + &
+               vmin(1)*species(particles%species(num_local+1))%tB(2) - &
+               vmin(2)*species(particles%species(num_local+1))%tB(1)
           if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
             vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
           end if
-          real_particles(4:6,num_local+1) = vmid(1:3) + ve(1:3)
+          particles%coordinates(4:6,num_local+1) = vmid(1:3) + ve(1:3)
 
           ! For each ion, create as many electrons as its charged state.
-          do ee = 1, epp(ss)
-            int_particles(num_local+1+ee)         = 1
-            real_particles(:,num_local+1+ee)      = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+ee),v0(1:3,ss),kelvin(1),mass(1) )
+          do ee = 1, species(ss)%epp
+            particles%species(num_local+1+ee)         = 1
+            particles%coordinates(:,num_local+1+ee)      = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+ee),species(ss)%v0(1:3),species(1)%upstreamkelvin,species(1)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,1)-vmin(3)*tB(2,1)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,1)-vmin(1)*tB(3,1)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,1)-vmin(2)*tB(1,1)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(1)%tB(3)-vmin(3)*species(1)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(1)%tB(1)-vmin(1)*species(1)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(1)%tB(2)-vmin(2)*species(1)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
           end do
           
-          do ee = 1, hpp(ss)
-            int_particles(num_local+1+epp(ss)+ee)    = 2
-            real_particles(:,num_local+1+epp(ss)+ee) = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+epp(ss)+ee),v0(1:3,ss),kelvin(2),mass(2) )
+          do ee = 1, species(ss)%hpp
+            particles%species(num_local+1+species(ss)%epp+ee)    = 2
+            particles%coordinates(:,num_local+1+species(ss)%epp+ee) = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+species(ss)%epp+ee),species(ss)%v0(1:3),species(2)%upstreamkelvin,species(2)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+epp(ss)+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,2)-vmin(3)*tB(2,2)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,2)-vmin(1)*tB(3,2)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,2)-vmin(2)*tB(1,2)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(2)%tB(3)-vmin(3)*species(2)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(2)%tB(1)-vmin(1)*species(2)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(2)%tB(2)-vmin(2)*species(2)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+epp(ss)+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) = vmid(1:3) + ve(1:3)
           end do
 
-          num_local = num_local+1+epp(ss)+hpp(ss)
+          num_local = num_local+1+species(ss)%epp+species(ss)%hpp
 
         end do
       end do
@@ -274,55 +293,61 @@ do kk = 2-zflow_neg, Nz_local+1
       do ss = 2, Nspecies
 
         ! Loop through all particles to be created
-        do pp = 1, ipp(ss)
-          int_particles(num_local+1)        = ss
+        do pp = 1, species(ss)%ipp
+          particles%species(num_local+1)        = ss
           call random_number(rndp)
-          real_particles(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
-          real_particles(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
-          real_particles(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
-          call Gaussian( real_particles(4:6,num_local+1),v0(1:3,ss),kelvin(ss),mass(ss) )
+          particles%coordinates(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
+          particles%coordinates(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
+          particles%coordinates(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
+          call Gaussian( particles%coordinates(4:6,num_local+1),species(ss)%v0(1:3),species(ss)%upstreamkelvin,species(ss)%mass )
           ! Advance velocity dt/2
-          vmin(1:3) = real_particles(4:6,num_local+1) - ve(1:3)
-          vmid(1) = vmin(1) + vmin(2)*tB(3,int_particles(num_local+1))-vmin(3)*tB(2,int_particles(num_local+1))
-          vmid(2) = vmin(2) + vmin(3)*tB(1,int_particles(num_local+1))-vmin(1)*tB(3,int_particles(num_local+1))
-          vmid(3) = vmin(3) + vmin(1)*tB(2,int_particles(num_local+1))-vmin(2)*tB(1,int_particles(num_local+1))
+          vmin(1:3) = particles%coordinates(4:6,num_local+1) - ve(1:3)
+          vmid(1) = vmin(1) + &
+               vmin(2)*species(particles%species(num_local+1))%tB(3) - &
+               vmin(3)*species(particles%species(num_local+1))%tB(2)
+          vmid(2) = vmin(2) + &
+               vmin(3)*species(particles%species(num_local+1))%tB(1) - &
+               vmin(1)*species(particles%species(num_local+1))%tB(3)
+          vmid(3) = vmin(3) + &
+               vmin(1)*species(particles%species(num_local+1))%tB(2) - &
+               vmin(2)*species(particles%species(num_local+1))%tB(1)
           if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
             vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
           end if
-          real_particles(4:6,num_local+1) = vmid(1:3) + ve(1:3)
+          particles%coordinates(4:6,num_local+1) = vmid(1:3) + ve(1:3)
 
           ! For each ion, create as many electrons as its charged state.
-          do ee = 1, epp(ss)
-            int_particles(num_local+1+ee)         = 1
-            real_particles(:,num_local+1+ee)      = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+ee),v0(1:3,ss),kelvin(1),mass(1) )
+          do ee = 1, species(ss)%epp
+            particles%species(num_local+1+ee)         = 1
+            particles%coordinates(:,num_local+1+ee)      = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+ee),species(ss)%v0(1:3),species(1)%upstreamkelvin,species(1)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,1)-vmin(3)*tB(2,1)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,1)-vmin(1)*tB(3,1)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,1)-vmin(2)*tB(1,1)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(1)%tB(3)-vmin(3)*species(1)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(1)%tB(1)-vmin(1)*species(1)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(1)%tB(2)-vmin(2)*species(1)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
           end do
           
-          do ee = 1, hpp(ss)
-            int_particles(num_local+1+epp(ss)+ee)    = 2
-            real_particles(:,num_local+1+epp(ss)+ee) = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+epp(ss)+ee),v0(1:3,ss),kelvin(2),mass(2) )
+          do ee = 1, species(ss)%hpp
+            particles%species(num_local+1+species(ss)%epp+ee)    = 2
+            particles%coordinates(:,num_local+1+species(ss)%epp+ee) = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+species(ss)%epp+ee),species(ss)%v0(1:3),species(2)%upstreamkelvin,species(2)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+epp(ss)+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,2)-vmin(3)*tB(2,2)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,2)-vmin(1)*tB(3,2)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,2)-vmin(2)*tB(1,2)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(2)%tB(3)-vmin(3)*species(2)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(2)%tB(1)-vmin(1)*species(2)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(2)%tB(2)-vmin(2)*species(2)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+epp(ss)+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) = vmid(1:3) + ve(1:3)
           end do
 
-          num_local = num_local+1+epp(ss)+hpp(ss)
+          num_local = num_local+1+species(ss)%epp+species(ss)%hpp
 
         end do
       end do
@@ -344,55 +369,62 @@ do jj = 2-yflow_neg, Ny_local+1
       do ss = 2, Nspecies
 
         ! Loop through all particles to be created
-        do pp = 1, ipp(ss)
-          int_particles(num_local+1)        = ss
+        do pp = 1, species(ss)%ipp
+          particles%species(num_local+1)        = ss
           call random_number(rndp)
-          real_particles(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
-          real_particles(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
-          real_particles(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
-          call Gaussian( real_particles(4:6,num_local+1),v0(1:3,ss),kelvin(ss),mass(ss) )
+          particles%coordinates(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
+          particles%coordinates(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
+          particles%coordinates(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
+          call Gaussian( particles%coordinates(4:6,num_local+1), &
+               species(ss)%v0(1:3),species(ss)%upstreamkelvin,species(ss)%mass )
           ! Advance velocity dt/2
-          vmin(1:3) = real_particles(4:6,num_local+1) - ve(1:3)
-          vmid(1) = vmin(1) + vmin(2)*tB(3,int_particles(num_local+1))-vmin(3)*tB(2,int_particles(num_local+1))
-          vmid(2) = vmin(2) + vmin(3)*tB(1,int_particles(num_local+1))-vmin(1)*tB(3,int_particles(num_local+1))
-          vmid(3) = vmin(3) + vmin(1)*tB(2,int_particles(num_local+1))-vmin(2)*tB(1,int_particles(num_local+1))
+          vmin(1:3) = particles%coordinates(4:6,num_local+1) - ve(1:3)
+          vmid(1) = vmin(1) + &
+               vmin(2)*species(particles%species(num_local+1))%tB(3) - &
+               vmin(3)*species(particles%species(num_local+1))%tB(2)
+          vmid(2) = vmin(2) + &
+               vmin(3)*species(particles%species(num_local+1))%tB(1) - &
+               vmin(1)*species(particles%species(num_local+1))%tB(3)
+          vmid(3) = vmin(3) + &
+               vmin(1)*species(particles%species(num_local+1))%tB(2) - &
+               vmin(2)*species(particles%species(num_local+1))%tB(1)
           if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
-            vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
+             vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
           end if
-          real_particles(4:6,num_local+1) = vmid(1:3) + ve(1:3)
+          particles%coordinates(4:6,num_local+1) = vmid(1:3) + ve(1:3)
 
           ! For each ion, create as many electrons as its charged state.
-          do ee = 1, epp(ss)
-            int_particles(num_local+1+ee)         = 1
-            real_particles(:,num_local+1+ee)      = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+ee),v0(1:3,ss),kelvin(1),mass(1) )
+          do ee = 1, species(ss)%epp
+            particles%species(num_local+1+ee)         = 1
+            particles%coordinates(:,num_local+1+ee)      = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+ee),species(ss)%v0(1:3),species(1)%upstreamkelvin,species(1)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,1)-vmin(3)*tB(2,1)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,1)-vmin(1)*tB(3,1)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,1)-vmin(2)*tB(1,1)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(1)%tB(3)-vmin(3)*species(1)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(1)%tB(1)-vmin(1)*species(1)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(1)%tB(2)-vmin(2)*species(1)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
           end do
           
-          do ee = 1, hpp(ss)
-            int_particles(num_local+1+epp(ss)+ee)    = 2
-            real_particles(:,num_local+1+epp(ss)+ee) = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+epp(ss)+ee),v0(1:3,ss),kelvin(2),mass(2) )
+          do ee = 1, species(ss)%hpp
+            particles%species(num_local+1+species(ss)%epp+ee)    = 2
+            particles%coordinates(:,num_local+1+species(ss)%epp+ee) = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+species(ss)%epp+ee),species(ss)%v0(1:3),species(2)%upstreamkelvin,species(2)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+epp(ss)+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,2)-vmin(3)*tB(2,2)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,2)-vmin(1)*tB(3,2)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,2)-vmin(2)*tB(1,2)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(2)%tB(3)-vmin(3)*species(2)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(2)%tB(1)-vmin(1)*species(2)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(2)%tB(2)-vmin(2)*species(2)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+epp(ss)+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) = vmid(1:3) + ve(1:3)
           end do
 
-          num_local = num_local+1+epp(ss)+hpp(ss)
+          num_local = num_local+1+species(ss)%epp+species(ss)%hpp
 
         end do
       end do
@@ -414,55 +446,62 @@ do jj = 2, Ny_local+1+yflow_pos
       do ss = 2, Nspecies
 
         ! Loop through all particles to be created
-        do pp = 1, ipp(ss)
-          int_particles(num_local+1)        = ss
+        do pp = 1, species(ss)%ipp
+          particles%species(num_local+1)        = ss
           call random_number(rndp)
-          real_particles(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
-          real_particles(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
-          real_particles(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
-          call Gaussian( real_particles(4:6,num_local+1),v0(1:3,ss),kelvin(ss),mass(ss) )
+          particles%coordinates(1,num_local+1)     = x0 + dxyz(1)*rndp(1)
+          particles%coordinates(2,num_local+1)     = y0 + dxyz(2)*rndp(2)
+          particles%coordinates(3,num_local+1)     = z0 + dxyz(3)*rndp(3)
+          call Gaussian( particles%coordinates(4:6,num_local+1), &
+               species(ss)%v0(1:3),species(ss)%upstreamkelvin,species(ss)%mass )
           ! Advance velocity dt/2
-          vmin(1:3) = real_particles(4:6,num_local+1) - ve(1:3)
-          vmid(1) = vmin(1) + vmin(2)*tB(3,int_particles(num_local+1))-vmin(3)*tB(2,int_particles(num_local+1))
-          vmid(2) = vmin(2) + vmin(3)*tB(1,int_particles(num_local+1))-vmin(1)*tB(3,int_particles(num_local+1))
-          vmid(3) = vmin(3) + vmin(1)*tB(2,int_particles(num_local+1))-vmin(2)*tB(1,int_particles(num_local+1))
+          vmin(1:3) = particles%coordinates(4:6,num_local+1) - ve(1:3)
+          vmid(1) = vmin(1) + &
+               vmin(2)*species(particles%species(num_local+1))%tB(3) - &
+               vmin(3)*species(particles%species(num_local+1))%tB(2)
+          vmid(2) = vmin(2) + &
+               vmin(3)*species(particles%species(num_local+1))%tB(1) - &
+               vmin(1)*species(particles%species(num_local+1))%tB(3)
+          vmid(3) = vmin(3) + &
+               vmin(1)*species(particles%species(num_local+1))%tB(2) - &
+               vmin(2)*species(particles%species(num_local+1))%tB(1)
           if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
             vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
           end if
-          real_particles(4:6,num_local+1) = vmid(1:3) + ve(1:3)
+          particles%coordinates(4:6,num_local+1) = vmid(1:3) + ve(1:3)
 
           ! For each ion, create as many electrons as its charged state.
-          do ee = 1, epp(ss)
-            int_particles(num_local+1+ee)         = 1
-            real_particles(:,num_local+1+ee)      = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+ee),v0(1:3,ss),kelvin(1),mass(1) )
+          do ee = 1, species(ss)%epp
+            particles%species(num_local+1+ee)         = 1
+            particles%coordinates(:,num_local+1+ee)      = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+ee),species(ss)%v0(1:3),species(1)%upstreamkelvin,species(1)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,1)-vmin(3)*tB(2,1)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,1)-vmin(1)*tB(3,1)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,1)-vmin(2)*tB(1,1)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(1)%tB(3)-vmin(3)*species(1)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(1)%tB(1)-vmin(1)*species(1)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(1)%tB(2)-vmin(2)*species(1)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+ee) = vmid(1:3) + ve(1:3)
           end do
           
-          do ee = 1, hpp(ss)
-            int_particles(num_local+1+epp(ss)+ee)    = 2
-            real_particles(:,num_local+1+epp(ss)+ee) = real_particles(:,num_local+1)
-            call Gaussian( real_particles(4:6,num_local+1+epp(ss)+ee),v0(1:3,ss),kelvin(2),mass(2) )
+          do ee = 1, species(ss)%hpp
+            particles%species(num_local+1+species(ss)%epp+ee)    = 2
+            particles%coordinates(:,num_local+1+species(ss)%epp+ee) = particles%coordinates(:,num_local+1)
+            call Gaussian( particles%coordinates(4:6,num_local+1+species(ss)%epp+ee),species(ss)%v0(1:3),species(2)%upstreamkelvin,species(2)%mass )
             ! Advance velocity dt/2
-            vmin(1:3) = real_particles(4:6,num_local+1+epp(ss)+ee) - ve(1:3)
-            vmid(1) = vmin(1) + vmin(2)*tB(3,2)-vmin(3)*tB(2,2)
-            vmid(2) = vmin(2) + vmin(3)*tB(1,2)-vmin(1)*tB(3,2)
-            vmid(3) = vmin(3) + vmin(1)*tB(2,2)-vmin(2)*tB(1,2)
+            vmin(1:3) = particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) - ve(1:3)
+            vmid(1) = vmin(1) +vmin(2)*species(2)%tB(3)-vmin(3)*species(2)%tB(2)
+            vmid(2) = vmin(2) +vmin(3)*species(2)%tB(1)-vmin(1)*species(2)%tB(3)
+            vmid(3) = vmin(3) +vmin(1)*species(2)%tB(2)-vmin(2)*species(2)%tB(1)
             if ( sum(vmid(:)**2) .gt. 0.0d0 ) then
               vmid = vmid * dsqrt( sum(vmin(:)**2)/sum(vmid(:)**2) )
             end if
-            real_particles(4:6,num_local+1+epp(ss)+ee) = vmid(1:3) + ve(1:3)
+            particles%coordinates(4:6,num_local+1+species(ss)%epp+ee) = vmid(1:3) + ve(1:3)
           end do
 
-          num_local = num_local+1+epp(ss)+hpp(ss)
+          num_local = num_local+1+species(ss)%epp+species(ss)%hpp
 
         end do
       end do

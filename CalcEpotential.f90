@@ -1,4 +1,3 @@
-
 ! Conjugate gradient method for solving Poisson's equation by Yousef Saad, Iterative Methods for Sparse Linear Systems, p.200 a.6.18.
 
 subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,xflow,yflow,zflow,&
