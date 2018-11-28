@@ -2,6 +2,8 @@ mkdir dumps
 mkdir outp
 mkdir outp/datfiles
 mkdir outp/datfiles/Efield
+mkdir outp/datfiles/Eprobe
+mkdir outp/datfiles/Pprobe
 mkdir outp/datfiles/potential
 mkdir outp/datfiles/flux
 mkdir outp/datfiles/density
