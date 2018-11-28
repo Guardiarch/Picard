@@ -4,6 +4,7 @@ startfromdumpfile='no';  % if 'yes' the distribution is read from the
                          % dumps directory
 dump_period_dump=1000;   % number of iterations between dumps one can start from
 dump_period_particles=100000; % number of iterations between particle dumps
+dump_period_pprobes=1000; % number of iteration between particle probe dumps
 dump_period_fields=500;  % number of iterations between field dumps
 write_period_screen=100; % number of iterations between showing onscreen
                          % life signs.
