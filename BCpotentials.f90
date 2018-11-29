@@ -1,5 +1,6 @@
-subroutine BCpotentials(U,C,D,xmin,xmax,ymin,ymax,zmin,zmax,Nx_local,Ny_local,Nz_local,Nx,Ny,Nz,&
-                        xflow,yflow,zflow,Nspecies,iprocs,jprocs,kprocs,myid)
+subroutine BCpotentials(U,C,D,xmin,xmax,ymin,ymax,zmin,zmax, &
+     Nx_local,Ny_local,Nz_local,Nx,Ny,Nz, &
+     xflow,yflow,zflow,Nspecies,iprocs,jprocs,kprocs,myid)
   use mpi
   implicit none
 
@@ -64,8 +65,16 @@ subroutine BCpotentials(U,C,D,xmin,xmax,ymin,ymax,zmin,zmax,Nx_local,Ny_local,Nz
       end do
     end do
 
-    call MPI_allreduce( Ux0_loc, Ux0_glo, Ny*Nz, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
-    call MPI_allreduce( Ux1_loc, Ux1_glo, Ny*Nz, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
+    call MPI_allreduce( Ux0_loc, Ux0_glo, Ny*Nz, MPI_DOUBLE_PRECISION, &
+         MPI_SUM, MPI_comm_world, ierr )
+    if (ierr>0) then
+       write (*,*) 'BCpotentials, 1, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_allreduce( Ux1_loc, Ux1_glo, Ny*Nz, MPI_DOUBLE_PRECISION, &
+         MPI_SUM, MPI_comm_world, ierr )
+    if (ierr>0) then
+       write (*,*) 'BCpotentials, 2, ierr=',ierr,' myid=',myid
+    end if
 
     if (myid - idnx .le. 0) then
       U(1,          2:Ny_local+1, 2:Nz_local+1) = &
@@ -95,8 +104,16 @@ subroutine BCpotentials(U,C,D,xmin,xmax,ymin,ymax,zmin,zmax,Nx_local,Ny_local,Nz
       end do
     end do
 
-    call MPI_allreduce( Uy0_loc, Uy0_glo, Nx*Nz, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
-    call MPI_allreduce( Uy1_loc, Uy1_glo, Nx*Nz, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
+    call MPI_allreduce( Uy0_loc, Uy0_glo, Nx*Nz, MPI_DOUBLE_PRECISION, &
+         MPI_SUM, MPI_comm_world, ierr )
+    if (ierr>0) then
+       write (*,*) 'BCpotentials, 3, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_allreduce( Uy1_loc, Uy1_glo, Nx*Nz, MPI_DOUBLE_PRECISION, &
+         MPI_SUM, MPI_comm_world, ierr )
+    if (ierr>0) then
+       write (*,*) 'BCpotentials, 4, ierr=',ierr,' myid=',myid
+    end if
 
     if (myid - idny .le. 0) then
       U(2:Nx_local+1, 1,          2:Nz_local+1) = &
@@ -126,8 +143,16 @@ subroutine BCpotentials(U,C,D,xmin,xmax,ymin,ymax,zmin,zmax,Nx_local,Ny_local,Nz
       end do
     end do
 
-    call MPI_allreduce( Uz0_loc, Uz0_glo, Nx*Ny, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
-    call MPI_allreduce( Uz1_loc, Uz1_glo, Nx*Ny, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
+    call MPI_allreduce( Uz0_loc, Uz0_glo, Nx*Ny, MPI_DOUBLE_PRECISION, &
+         MPI_SUM, MPI_comm_world, ierr )
+    if (ierr>0) then
+       write (*,*) 'BCpotentials, 5, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_allreduce( Uz1_loc, Uz1_glo, Nx*Ny, MPI_DOUBLE_PRECISION, &
+         MPI_SUM, MPI_comm_world, ierr )
+    if (ierr>0) then
+       write (*,*) 'BCpotentials, 6, ierr=',ierr,' myid=',myid
+    end if
 
     if (myid - idnz .le. 0) then
       U(2:Nx_local+1, 2:Ny_local+1, 1         ) = &

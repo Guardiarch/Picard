@@ -140,8 +140,17 @@ program picard
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   call MPI_init( ierr )
+  if (ierr>0) then
+     write (*,*) 'picard, 1, ierr=',ierr,' myid=',myid
+  end if
   call MPI_comm_rank( MPI_comm_world, myid, ierr )
+  if (ierr>0) then
+     write (*,*) 'picard, 2, ierr=',ierr,' myid=',myid
+  end if
   call MPI_comm_size( MPI_comm_world, Nprocs, ierr )
+  if (ierr>0) then
+     write (*,*) 'picard, 3, ierr=',ierr,' myid=',myid
+  end if
 
   if (Nprocs .ne. iprocs*jprocs*kprocs) then
     if (myid .eq. 0) then
@@ -152,6 +161,9 @@ program picard
        write (*,*) 'kprocs=', kprocs
     end if
     call MPI_barrier(MPI_comm_world, ierr)
+    if (ierr>0) then
+       write (*,*) 'picard, 4, ierr=',ierr,' myid=',myid
+    end if
   end if
 
 
@@ -386,6 +398,9 @@ program picard
   u0_global     = uEB0_global + uP0_global
 
   call MPI_barrier( MPI_comm_world, ierr)
+  if (ierr>0) then
+     write (*,*) 'picard, 5, ierr=',ierr,' myid=',myid
+  end if
 
 ! Write particle status
   if (myid .eq. 0) then
@@ -609,18 +624,27 @@ program picard
 
        call MPI_reduce( num_local, num_global, 1, MPI_INT, MPI_SUM, 0, &
             MPI_comm_world, ierr )
+       if (ierr>0) then
+          write (*,*) 'picard, 6, ierr=',ierr,' myid=',myid
+       end if
 
        uB_local = sum( B(:,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1 )**2.0d0 ) &
             *0.5d0/mu0*dV
        call MPI_reduce( uB_local, uB_global, 1, MPI_DOUBLE_PRECISION, &
             MPI_SUM, 0, MPI_comm_world, ierr )
-      
+       if (ierr>0) then
+          write (*,*) 'picard, 7, ierr=',ierr,' myid=',myid
+       end if
+
        uE_local=sum((E(1,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)+E0(1))**2.0d0 &
             + (E(2,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)+E0(2))**2.0d0 &
             + (E(3,2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)+E0(3))**2.0d0 &
                       )*0.5d0*eps0*dV
        call MPI_reduce( uE_local, uE_global, 1, MPI_DOUBLE_PRECISION, &
             MPI_SUM, 0, MPI_comm_world, ierr )
+       if (ierr>0) then
+          write (*,*) 'picard, 8, ierr=',ierr,' myid=',myid
+       end if
 
        uP_local = sum( species(particles%species(1:num_local))%n2p* &
             species(particles%species(1:num_local))%mass*&
@@ -629,6 +653,9 @@ program picard
             + particles%coordinates(6,1:num_local)**2.0d0 )  )*0.5d0
        call MPI_reduce( uP_local, uP_global, 1, MPI_DOUBLE_PRECISION, &
             MPI_SUM, 0, MPI_comm_world, ierr )
+       if (ierr>0) then
+          write (*,*) 'picard, 9, ierr=',ierr,' myid=',myid
+       end if
 
        if (myid .eq. 0) then
           write(*,fmt='(I8,a,E12.6,a,I8,a,I8,a,I10,a,E12.6,a,E12.6,a,E12.6)') &
@@ -673,6 +700,9 @@ end if
   end if
 
   call MPI_finalize(ierr)
-  
+  if (ierr>0) then
+     write (*,*) 'picard, 10, ierr=',ierr,' myid=',myid
+  end if
+
   stop
 end program picard

@@ -1,23 +1,30 @@
 ! Conjugate gradient method for solving Poisson's equation by Yousef Saad, Iterative Methods for Sparse Linear Systems, p.200 a.6.18.
 
-subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,xflow,yflow,zflow,&
-                            xmin,xmax,ymin,ymax,zmin,zmax,dxyz,maxerr,maxit,iprocs,jprocs,kprocs,Nspecies,myid)
+subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local, &
+     Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,xflow,yflow,zflow,&
+     xmin,xmax,ymin,ymax,zmin,zmax,dxyz,maxerr,maxit, &
+     iprocs,jprocs,kprocs,Nspecies,myid)
   use mpi
   implicit none
 
 
   logical, intent(in) :: xflow, yflow, zflow
-  integer, intent(in) :: Nx_local,Ny_local,Nz_local,maxit,iprocs,jprocs,kprocs,Nspecies,myid
-  real*8, intent(in) :: Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,xmin,xmax,ymin,ymax,zmin,zmax,maxerr,dxyz(3)
+  integer, intent(in) :: Nx_local,Ny_local,Nz_local,maxit, &
+       iprocs,jprocs,kprocs,Nspecies,myid
+  real*8, intent(in) :: Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max, &
+       xmin,xmax,ymin,ymax,zmin,zmax,maxerr,dxyz(3)
   real*8, intent(in) :: C(Nx_local+2,Ny_local+2,Nz_local+2)
   real*8, intent(inout) :: U(Nx_local+2,Ny_local+2,Nz_local+2)
 
   real*8, parameter :: eps0 = 8.854187817d-12  ! Electric constant [ SI ]
 
 ! local variables
-  integer :: ss, idpx, idnx, idpy, idny, idpz, idnz, tag, ierr, req(8), size_sendrecv
-  real*8, allocatable :: real_neg_send(:,:), real_neg_recv(:,:), real_pos_send(:,:), real_pos_recv(:,:)
-  real*8 :: dV, b_local, b_global, b_global_sqrt, r_local, r_global, r_old, maxerr_sqrt
+  integer :: ss, idpx, idnx, idpy, idny, idpz, idnz, tag, ierr, req(8), &
+       size_sendrecv
+  real*8, allocatable :: real_neg_send(:,:), real_neg_recv(:,:), &
+       real_pos_send(:,:), real_pos_recv(:,:)
+  real*8 :: dV, b_local, b_global, b_global_sqrt, r_local, r_global, &
+       r_old, maxerr_sqrt
 
 ! For the algorithm
   real*8 :: b(Nx_local+2,Ny_local+2,Nz_local+2)
@@ -49,7 +56,11 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
   b(:,:,:) = -C(:,:,:)*(dV*eps0)**(-1.0d0)
 
   b_local = sum( b(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)**2.0d0 )
-  call MPI_allreduce( b_local, b_global, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
+  call MPI_allreduce( b_local, b_global, 1, MPI_DOUBLE_PRECISION, &
+       MPI_SUM, MPI_comm_world, ierr )
+  if (ierr>0) then
+     write (*,*) 'CalcEpotential, 1, ierr=',ierr,' myid=',myid
+  end if
   b_global_sqrt = dsqrt(b_global)
   r_global = 1.0d0*b_global
   r_old = 0.0d0
@@ -92,7 +103,11 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
 
 ! Residual
     r_local = sum( res(2:Nx_local+1,2:Ny_local+1,2:Nz_local+1)**2.0d0 )
-    call MPI_allreduce( r_local, r_global, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_comm_world, ierr )
+    call MPI_allreduce( r_local, r_global, 1, MPI_DOUBLE_PRECISION, &
+         MPI_SUM, MPI_comm_world, ierr )
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 2, ierr=',ierr,' myid=',myid
+    end if
 
 ! Send potential around
     
@@ -108,14 +123,33 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
 
   
     tag = 1
-    call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idpz, tag, MPI_COMM_WORLD, req(1), ierr)
-    call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, idnz, tag, MPI_COMM_WORLD, req(3), ierr)
+    call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idpz, tag, MPI_COMM_WORLD, req(1), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 3, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idnz, tag, MPI_COMM_WORLD, req(3), ierr)
     tag = 2
-    call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idnz, tag, MPI_COMM_WORLD, req(2), ierr)
-    call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, idpz, tag, MPI_COMM_WORLD, req(4), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 4, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idnz, tag, MPI_COMM_WORLD, req(2), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 5, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idpz, tag, MPI_COMM_WORLD, req(4), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 6, ierr=',ierr,' myid=',myid
+    end if
 
 ! Wait to receive
     call MPI_WAITALL(2, req(1:2), MPI_STATUSES_IGNORE, ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 7, ierr=',ierr,' myid=',myid
+    end if
 
   
     if (zflow) then
@@ -137,6 +171,9 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
     end if
  
     call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 8, ierr=',ierr,' myid=',myid
+    end if
 
     deallocate( real_neg_send )
     deallocate( real_pos_send )
@@ -155,14 +192,33 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
 
   
     tag = 1
-    call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idpy, tag, MPI_COMM_WORLD, req(1), ierr)
-    call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, idny, tag, MPI_COMM_WORLD, req(3), ierr)
+    call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idpy, tag, MPI_COMM_WORLD, req(1), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 9, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idny, tag, MPI_COMM_WORLD, req(3), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 10, ierr=',ierr,' myid=',myid
+    end if
     tag = 2
-    call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idny, tag, MPI_COMM_WORLD, req(2), ierr)
-    call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, idpy, tag, MPI_COMM_WORLD, req(4), ierr)
+    call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idny, tag, MPI_COMM_WORLD, req(2), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 11, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idpy, tag, MPI_COMM_WORLD, req(4), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 12, ierr=',ierr,' myid=',myid
+    end if
 
 ! Wait to receive
     call MPI_WAITALL(2, req(1:2), MPI_STATUSES_IGNORE, ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 13, ierr=',ierr,' myid=',myid
+    end if
 
   
     if (yflow) then
@@ -184,6 +240,9 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
     end if
  
     call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 14, ierr=',ierr,' myid=',myid
+    end if
 
     deallocate( real_neg_send )
     deallocate( real_pos_send )
@@ -202,14 +261,33 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
 
   
     tag = 1
-    call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idpx, tag, MPI_COMM_WORLD, req(1), ierr)
-    call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, idnx, tag, MPI_COMM_WORLD, req(3), ierr)
+    call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idpx, tag, MPI_COMM_WORLD, req(1), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 15, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idnx, tag, MPI_COMM_WORLD, req(3), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 16, ierr=',ierr,' myid=',myid
+    end if
     tag = 2
-    call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idnx, tag, MPI_COMM_WORLD, req(2), ierr)
-    call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, idpx, tag, MPI_COMM_WORLD, req(4), ierr)
+    call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idnx, tag, MPI_COMM_WORLD, req(2), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 17, ierr=',ierr,' myid=',myid
+    end if
+    call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+         idpx, tag, MPI_COMM_WORLD, req(4), ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 18, ierr=',ierr,' myid=',myid
+    end if
 
 ! Wait to receive
     call MPI_WAITALL(2, req(1:2), MPI_STATUSES_IGNORE, ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 19, ierr=',ierr,' myid=',myid
+    end if
 
   
     if (xflow) then
@@ -231,6 +309,9 @@ subroutine CalcEpotential(U,C,Nx_local,Ny_local,Nz_local,Lx_min,Lx_max,Ly_min,Ly
     end if
  
     call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
+    if (ierr>0) then
+       write (*,*) 'CalcEpotential, 20, ierr=',ierr,' myid=',myid
+    end if
 
     deallocate( real_neg_send )
     deallocate( real_pos_send )

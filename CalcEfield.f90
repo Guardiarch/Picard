@@ -1,4 +1,5 @@
-subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
+subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz, &
+     xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
   use mpi
   implicit none
 
@@ -9,8 +10,10 @@ subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,ipro
   real*8, intent(out) :: E(3,Nx_local+2,Ny_local+2,Nz_local+2)
 
 ! local variables
-  integer :: ii, idpx, idnx, idpy, idny, idpz, idnz, tag, ierr, req(4), size_sendrecv
-  real*8, allocatable :: real_neg_send(:,:,:), real_neg_recv(:,:,:), real_pos_send(:,:,:), real_pos_recv(:,:,:)
+  integer :: ii, idpx, idnx, idpy, idny, idpz, idnz, tag, ierr, &
+       req(4), size_sendrecv
+  real*8, allocatable :: real_neg_send(:,:,:), real_neg_recv(:,:,:), &
+       real_pos_send(:,:,:), real_pos_recv(:,:,:)
 
   
   idpx = myid + (mod(myid+iprocs+1,                           iprocs) - mod(myid+iprocs, iprocs))
@@ -99,14 +102,33 @@ subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,ipro
 
   
   tag = 1
-  call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idpz, tag, MPI_COMM_WORLD, req(1), ierr)
-  call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, idnz, tag, MPI_COMM_WORLD, req(3), ierr)
+  call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idpz, tag, MPI_COMM_WORLD, req(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 1, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idnz, tag, MPI_COMM_WORLD, req(3), ierr)
   tag = 2
-  call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idnz, tag, MPI_COMM_WORLD, req(2), ierr)
-  call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, idpz, tag, MPI_COMM_WORLD, req(4), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 2, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idnz, tag, MPI_COMM_WORLD, req(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 3, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idpz, tag, MPI_COMM_WORLD, req(4), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 4, ierr=',ierr,' myid=',myid
+  end if
 
 ! Wait to receive
   call MPI_WAITALL(2, req(1:2), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 5, ierr=',ierr,' myid=',myid
+  end if
 
   
   if (zflow) then
@@ -128,6 +150,9 @@ subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,ipro
   end if
  
   call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 6, ierr=',ierr,' myid=',myid
+  end if
 
   deallocate( real_neg_send )
   deallocate( real_pos_send )
@@ -147,14 +172,33 @@ subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,ipro
 
   
   tag = 1
-  call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idpy, tag, MPI_COMM_WORLD, req(1), ierr)
-  call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, idny, tag, MPI_COMM_WORLD, req(3), ierr)
+  call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idpy, tag, MPI_COMM_WORLD, req(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 7, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idny, tag, MPI_COMM_WORLD, req(3), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 8, ierr=',ierr,' myid=',myid
+  end if
   tag = 2
-  call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idny, tag, MPI_COMM_WORLD, req(2), ierr)
-  call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, idpy, tag, MPI_COMM_WORLD, req(4), ierr)
+  call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idny, tag, MPI_COMM_WORLD, req(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 9, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idpy, tag, MPI_COMM_WORLD, req(4), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 10, ierr=',ierr,' myid=',myid
+  end if
 
 ! Wait to receive
   call MPI_WAITALL(2, req(1:2), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 11, ierr=',ierr,' myid=',myid
+  end if
 
   
   if (yflow) then
@@ -176,6 +220,9 @@ subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,ipro
   end if
  
   call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 12, ierr=',ierr,' myid=',myid
+  end if
 
   deallocate( real_neg_send )
   deallocate( real_pos_send )
@@ -195,14 +242,33 @@ subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,ipro
 
   
   tag = 1
-  call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idpx, tag, MPI_COMM_WORLD, req(1), ierr)
-  call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, idnx, tag, MPI_COMM_WORLD, req(3), ierr)
+  call MPI_IRECV(real_pos_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idpx, tag, MPI_COMM_WORLD, req(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 13, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_ISEND(real_neg_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idnx, tag, MPI_COMM_WORLD, req(3), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 14, ierr=',ierr,' myid=',myid
+  end if
   tag = 2
-  call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, idnx, tag, MPI_COMM_WORLD, req(2), ierr)
-  call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, idpx, tag, MPI_COMM_WORLD, req(4), ierr)
+  call MPI_IRECV(real_neg_recv, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idnx, tag, MPI_COMM_WORLD, req(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 15, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_ISEND(real_pos_send, size_sendrecv, MPI_DOUBLE_PRECISION, &
+       idpx, tag, MPI_COMM_WORLD, req(4), ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 16, ierr=',ierr,' myid=',myid
+  end if
 
 ! Wait to receive
   call MPI_WAITALL(2, req(1:2), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 17, ierr=',ierr,' myid=',myid
+  end if
 
   
   if (xflow) then
@@ -224,6 +290,9 @@ subroutine CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz,xflow,yflow,zflow,ipro
   end if
  
   call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'CalcEfield, 18, ierr=',ierr,' myid=',myid
+  end if
 
   deallocate( real_neg_send )
   deallocate( real_pos_send )

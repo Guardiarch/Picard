@@ -32,7 +32,13 @@ recursive subroutine  DumpDump(Nspecies, num_local, max_per_proc, &
   ! Make sure all processes have written their temporary files 
   ! and then rename them.
   call MPI_Barrier(MPI_comm_world, ierr)
+  if (ierr>0) then
+     write (*,*) 'DumpDump, 1, ierr=',ierr,' myid=',myid
+  end if
   ierr = rename(tmpfile,filename)
+  if (ierr>0) then
+     write (*,*) 'DumpDump, 2, ierr=',ierr,' myid=',myid
+  end if
 
 ! Process 0 writes the iteration number
   if (myid==0) then
@@ -42,6 +48,9 @@ recursive subroutine  DumpDump(Nspecies, num_local, max_per_proc, &
      write (1,fmt='(I7)',err=98) iteration
      close(1,err=99)
      ierr = rename(tmpfile,filename)
+     if (ierr>0) then
+        write (*,*) 'DumpDump, 3, ierr=',ierr,' myid=',myid
+     end if
   end if
 
   return
@@ -66,7 +75,6 @@ recursive subroutine  LoadDump(Nspecies, num_local, max_per_proc, &
      particles, myid, iteration, attemptno, Nretries)
 
   use SpecificTypes
-  use mpi
 
   implicit none
 
@@ -395,6 +403,7 @@ recursive subroutine DumpEprobe(Nprobes, thisprobe, fields_collected, &
   close(1,err=99)
   ierr = rename(tmpfile,filename)
   if ( ierr>0 ) then
+     write (*,*) 'DumpEprobe: error in rename statement'
      goto 100
   end if
 
@@ -456,6 +465,7 @@ recursive subroutine DumpPprobe(Nprobes, thisprobe, particles, num_local, &
   close(1,err=99)
   ierr = rename(tmpfile,filename)
   if ( ierr>0 ) then
+     write (*,*) 'DumpPprobe: error in rename statement'
      goto 100
   end if
   

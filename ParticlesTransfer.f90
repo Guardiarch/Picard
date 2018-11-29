@@ -117,10 +117,22 @@ if (idpz .ne. myid) then
 
   tag = 1
   call MPI_IRECV(size_pos_recv,1,MPI_INT,idpz,tag,MPI_COMM_WORLD,req(1),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 1, ierr=',ierr,' myid=',myid
+  end if
   call MPI_ISEND(size_neg_send,1,MPI_INT,idnz,tag,MPI_COMM_WORLD,req(7),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 2, ierr=',ierr,' myid=',myid
+  end if
   tag = 2
   call MPI_IRECV(size_neg_recv,1,MPI_INT,idnz,tag,MPI_COMM_WORLD,req(2),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 3, ierr=',ierr,' myid=',myid
+  end if
   call MPI_ISEND(size_pos_send,1,MPI_INT,idpz,tag,MPI_COMM_WORLD,req(8),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 4, ierr=',ierr,' myid=',myid
+  end if
 
 ! Allocate the send buffers
   allocate( neg_send%species(size_neg_send) )
@@ -159,6 +171,9 @@ end if
 
 ! Wait to receive
   call MPI_WAITALL(2, req(1:2), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 5, ierr=',ierr,' myid=',myid
+  end if
 
 ! Allocate receive buffers
   allocate( neg_recv%species(size_neg_recv) )
@@ -173,54 +188,117 @@ end if
   blockcounts(1) = size_neg_recv
   blockcounts(2) = size_neg_recv*6
   call MPI_GET_ADDRESS(neg_recv%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 6, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(neg_recv%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 7, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_neg_recv,ierr)
+    if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 8, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_neg_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 9, ierr=',ierr,' myid=',myid
+  end if
   ! positive receive
   blockcounts(1) = size_pos_recv
   blockcounts(2) = size_pos_recv*6
   call MPI_GET_ADDRESS(pos_recv%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 10, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(pos_recv%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 11, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_pos_recv,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 12, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_pos_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 13, ierr=',ierr,' myid=',myid
+  end if
   ! negative send
   blockcounts(1) = size_neg_send
   blockcounts(2) = size_neg_send*6
   call MPI_GET_ADDRESS(neg_send%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 14, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(neg_send%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 15, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_neg_send,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 16, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_neg_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 17, ierr=',ierr,' myid=',myid
+  end if
   ! positive send
   blockcounts(1) = size_pos_send
   blockcounts(2) = size_pos_send*6
   call MPI_GET_ADDRESS(pos_send%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 18, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(pos_send%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 19, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_pos_send,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 20, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_pos_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 21, ierr=',ierr,' myid=',myid
+  end if
   
 
 ! Send and receive the buffers
   tag = 3
   call MPI_IRECV(pos_recv%species, 1, b_type_pos_recv, idpz, &
        tag, MPI_COMM_WORLD, req(3), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 22, ierr=',ierr,' myid=',myid
+  end if
   call MPI_ISEND(neg_send%species,1, b_type_neg_send, idnz, &
        tag, MPI_COMM_WORLD, req(9), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 23, ierr=',ierr,' myid=',myid
+  end if
   tag = 4
-  call MPI_IRECV(neg_recv%species, 1, b_type_neg_recv, idpz, &
+  call MPI_IRECV(neg_recv%species, 1, b_type_neg_recv, idnz, &
        tag, MPI_COMM_WORLD, req(4), ierr)
-  call MPI_ISEND(pos_send%species,1, b_type_pos_send, idnz, &
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 24, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_ISEND(pos_send%species,1, b_type_pos_send, idpz, &
        tag, MPI_COMM_WORLD, req(10), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 25, ierr=',ierr,' myid=',myid
+  end if
 
 ! Wait to receive
   call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 26, ierr=',ierr,' myid=',myid
+  end if
 
 ! Organize received arrays
 
@@ -240,10 +318,25 @@ end if
 
 ! Clean up before the y direction
   call MPI_WAITALL(4, req(7:10), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 27, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_neg_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 28, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_pos_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 29, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_neg_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 30, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_pos_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 31, ierr=',ierr,' myid=',myid
+  end if
   deallocate( neg_recv%species )
   deallocate( neg_recv%coordinates )
   deallocate( pos_recv%species )
@@ -321,10 +414,22 @@ if (idpy .ne. myid) then
 
   tag = 1
   call MPI_IRECV(size_pos_recv,1,MPI_INT,idpy,tag,MPI_COMM_WORLD,req(1),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 32, ierr=',ierr,' myid=',myid
+  end if
   call MPI_ISEND(size_neg_send,1,MPI_INT,idny,tag,MPI_COMM_WORLD,req(7),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 33, ierr=',ierr,' myid=',myid
+  end if
   tag = 2
   call MPI_IRECV(size_neg_recv,1,MPI_INT,idny,tag,MPI_COMM_WORLD,req(2),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 34, ierr=',ierr,' myid=',myid
+  end if
   call MPI_ISEND(size_pos_send,1,MPI_INT,idpy,tag,MPI_COMM_WORLD,req(8),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 35, ierr=',ierr,' myid=',myid
+  end if
 
 ! Allocate the send buffers
   allocate( neg_send%species(size_neg_send) )
@@ -363,6 +468,9 @@ end if
 
 ! Wait to receive
   call MPI_WAITALL(2, req(1:2), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 36, ierr=',ierr,' myid=',myid
+  end if
 
 ! Allocate receive buffers
   allocate( neg_recv%species(size_neg_recv) )
@@ -377,54 +485,117 @@ end if
   blockcounts(1) = size_neg_recv
   blockcounts(2) = size_neg_recv*6
   call MPI_GET_ADDRESS(neg_recv%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 37, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(neg_recv%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 38, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_neg_recv,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 39, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_neg_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 40, ierr=',ierr,' myid=',myid
+  end if
   ! positive receive
   blockcounts(1) = size_pos_recv
   blockcounts(2) = size_pos_recv*6
   call MPI_GET_ADDRESS(pos_recv%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 41, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(pos_recv%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 42, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_pos_recv,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 43, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_pos_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 44, ierr=',ierr,' myid=',myid
+  end if
   ! negative send
   blockcounts(1) = size_neg_send
   blockcounts(2) = size_neg_send*6
   call MPI_GET_ADDRESS(neg_send%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 45, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(neg_send%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 46, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_neg_send,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 47, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_neg_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 48, ierr=',ierr,' myid=',myid
+  end if
   ! positive send
   blockcounts(1) = size_pos_send
   blockcounts(2) = size_pos_send*6
   call MPI_GET_ADDRESS(pos_send%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 49, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(pos_send%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 50, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_pos_send,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 51, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_pos_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 52, ierr=',ierr,' myid=',myid
+  end if
 
 
 ! Send and receive the buffers
   tag = 3
   call MPI_IRECV(pos_recv%species, 1, b_type_pos_recv, idpy, &
        tag, MPI_COMM_WORLD, req(3), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 53, ierr=',ierr,' myid=',myid
+  end if
   call MPI_ISEND(neg_send%species,1, b_type_neg_send, idny, &
        tag, MPI_COMM_WORLD, req(9), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 54, ierr=',ierr,' myid=',myid
+  end if
   tag = 4
-  call MPI_IRECV(neg_recv%species, 1, b_type_neg_recv, idpy, &
+  call MPI_IRECV(neg_recv%species, 1, b_type_neg_recv, idny, &
        tag, MPI_COMM_WORLD, req(4), ierr)
-  call MPI_ISEND(pos_send%species,1, b_type_pos_send, idny, &
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 55, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_ISEND(pos_send%species,1, b_type_pos_send, idpy, &
        tag, MPI_COMM_WORLD, req(10), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 56, ierr=',ierr,' myid=',myid
+  end if
 
 ! Wait to receive
   call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 57, ierr=',ierr,' myid=',myid
+  end if
 
 ! Organize received arrays
   if (size_pos_recv .gt. 0) then
@@ -443,10 +614,25 @@ end if
 
 ! Clean up before the x direction
   call MPI_WAITALL(4, req(7:10), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 58, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_neg_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 59, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_pos_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 60, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_neg_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 61, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_pos_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 62, ierr=',ierr,' myid=',myid
+  end if
   deallocate( neg_recv%species )
   deallocate( neg_recv%coordinates )
   deallocate( pos_recv%species )
@@ -524,10 +710,22 @@ if (idpx .ne. myid) then
 ! Send and receive array sizes
   tag = 1
   call MPI_IRECV(size_pos_recv,1,MPI_INT,idpx,tag,MPI_COMM_WORLD,req(1),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 63, ierr=',ierr,' myid=',myid
+  end if
   call MPI_ISEND(size_neg_send,1,MPI_INT,idnx,tag,MPI_COMM_WORLD,req(7),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 64, ierr=',ierr,' myid=',myid
+  end if
   tag = 2
   call MPI_IRECV(size_neg_recv,1,MPI_INT,idnx,tag,MPI_COMM_WORLD,req(2),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 65, ierr=',ierr,' myid=',myid
+  end if
   call MPI_ISEND(size_pos_send,1,MPI_INT,idpx,tag,MPI_COMM_WORLD,req(8),ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 66, ierr=',ierr,' myid=',myid
+  end if
 
 ! Allocate the send buffers
   allocate( neg_send%species(size_neg_send) )
@@ -567,6 +765,9 @@ end if
 
 ! Wait to receive
   call MPI_WAITALL(2, req(1:2), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 67, ierr=',ierr,' myid=',myid
+  end if
 
 ! Allocate receive buffers
   allocate( neg_recv%species(size_neg_recv) )
@@ -581,54 +782,117 @@ end if
   blockcounts(1) = size_neg_recv
   blockcounts(2) = size_neg_recv*6
   call MPI_GET_ADDRESS(neg_recv%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 68, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(neg_recv%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 69, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_neg_recv,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 70, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_neg_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 71, ierr=',ierr,' myid=',myid
+  end if
   ! positive receive
   blockcounts(1) = size_pos_recv
   blockcounts(2) = size_pos_recv*6
   call MPI_GET_ADDRESS(pos_recv%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 72, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(pos_recv%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 73, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_pos_recv,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 74, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_pos_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 75, ierr=',ierr,' myid=',myid
+  end if
   ! negative send
   blockcounts(1) = size_neg_send
   blockcounts(2) = size_neg_send*6
   call MPI_GET_ADDRESS(neg_send%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 76, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(neg_send%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 77, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_neg_send,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 78, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_neg_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 79, ierr=',ierr,' myid=',myid
+  end if
   ! positive send
   blockcounts(1) = size_pos_send
   blockcounts(2) = size_pos_send*6
   call MPI_GET_ADDRESS(pos_send%species, offsets(1), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 80, ierr=',ierr,' myid=',myid
+  end if
   call MPI_GET_ADDRESS(pos_send%coordinates, offsets(2), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 81, ierr=',ierr,' myid=',myid
+  end if
   offsets = offsets-offsets(1)
   call MPI_TYPE_CREATE_STRUCT &
        (2,blockcounts,offsets,oldtypes,b_type_pos_send,ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 82, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_COMMIT(b_type_pos_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 83, ierr=',ierr,' myid=',myid
+  end if
 
 
 ! Send and receive the buffers
   tag = 3
   call MPI_IRECV(pos_recv%species, 1, b_type_pos_recv, idpx, &
        tag, MPI_COMM_WORLD, req(3), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 84, ierr=',ierr,' myid=',myid
+  end if
   call MPI_ISEND(neg_send%species,1, b_type_neg_send, idnx, &
        tag, MPI_COMM_WORLD, req(9), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 85, ierr=',ierr,' myid=',myid
+  end if
   tag = 4
-  call MPI_IRECV(neg_recv%species, 1, b_type_neg_recv, idpx, &
+  call MPI_IRECV(neg_recv%species, 1, b_type_neg_recv, idnx, &
        tag, MPI_COMM_WORLD, req(4), ierr)
-  call MPI_ISEND(pos_send%species,1, b_type_pos_send, idnx, &
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 86, ierr=',ierr,' myid=',myid
+  end if
+  call MPI_ISEND(pos_send%species,1, b_type_pos_send, idpx, &
        tag, MPI_COMM_WORLD, req(10), ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 87, ierr=',ierr,' myid=',myid
+  end if
 
 ! Wait to receive
   call MPI_WAITALL(2, req(3:4), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 88, ierr=',ierr,' myid=',myid
+  end if
 
 ! Organize received arrays
 
@@ -648,10 +912,25 @@ end if
 
 ! WAIT FOR ALL SENDS
   call MPI_WAITALL(4, req(7:10), MPI_STATUSES_IGNORE, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 89, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_neg_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 90, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_pos_recv, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 91, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_neg_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 92, ierr=',ierr,' myid=',myid
+  end if
   call MPI_TYPE_FREE(b_type_pos_send, ierr)
+  if (ierr>0) then
+     write (*,*) 'ParticlesTransfer, 93, ierr=',ierr,' myid=',myid
+  end if
   deallocate( neg_recv%species )
   deallocate( neg_recv%coordinates )
   deallocate( pos_recv%species )
