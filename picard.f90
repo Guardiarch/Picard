@@ -5,7 +5,7 @@
 ! Swedish National Infrastructure for Computing (SNIC) at the
 ! High Performance Computing Center North (HPC2N), Umeå 
 ! University in Sweden.
-! Jesper Lindkvist was funded by the Swedish National Space
+! This project was funded by the Swedish National Space
 ! Board (SNSB project 201/15).
 ! @author    :  Jesper Lindkvist
 ! Email      :  jesper.lindkvist@umu.se
