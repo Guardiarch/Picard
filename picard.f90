@@ -1,15 +1,16 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-! The program 'picard' was developed by Jesper Lindkvist in
-! 2016-2018 using resources provided by the Swedish National
-! Infrastructure for Computing (SNIC) at the High Performance
-! Computing Center North (HPC2N), Umeå University, Sweden.
+! The program 'picard' was developed by Jesper Lindkvist and
+!  Herbert Gunell in 2016-2018 using resources provided by the
+! Swedish National Infrastructure for Computing (SNIC) at the
+! High Performance Computing Center North (HPC2N), Umeå 
+! University in Sweden.
 ! Jesper Lindkvist was funded by the Swedish National Space
 ! Board (SNSB project 201/15).
 ! @author    :  Jesper Lindkvist
 ! Email      :  jesper.lindkvist@umu.se
 !
-! Some updates were made by Herbert Gunell in 2018.
+! @author    :  Herbert Gunell
 ! Email      :  herbert.gunell@physics.org
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -167,9 +168,12 @@ program picard
   end if
 
 
-  call random_seed( size = Nprocs )
-  allocate( seed(Nprocs) )
-  call random_seed( put = seed )
+! I'm commenting this out now in order that we may run the code 
+! several times with the same inputs and be sure to get exactly the 
+! same results. HG 2018-11-30
+!!$  call random_seed( size = Nprocs )
+!!$  allocate( seed(Nprocs) )
+!!$  call random_seed( put = seed )
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 2.1.0 SIMULATION PARAMETERS
@@ -615,7 +619,7 @@ program picard
         write (*,*) 'The first iteration was a success!'
         write (*,*) ' '
         write (*,*) '****************************************************************'
-        write (*,*) '   ITER           TIME   MPI_RANK  NUM_LOCAL   NUM_GLOBAL    PART_ENERGY       E_ENERGY       B_ENERGY'
+        write (*,*) '   ITER           TIME   MPI_RANK  NUM_LOCAL     NUM_GLOBAL    PART_ENERGY       E_ENERGY       B_ENERGY'
       end if
     end if
 
@@ -658,7 +662,7 @@ program picard
        end if
 
        if (myid .eq. 0) then
-          write(*,fmt='(I8,a,E12.6,a,I8,a,I8,a,I10,a,E12.6,a,E12.6,a,E12.6)') &
+          write(*,fmt='(I8,a,E12.6,a,I8,a,I8,a,I12,a,E12.6,a,E12.6,a,E12.6)') &
                iteration,'   ',time,'   ',myid,'   ',num_local,'   ', &
                num_global,'   ',uP_global/u0_global,'   ',&
                uE_global/u0_global,'   ',uB_global/u0_global

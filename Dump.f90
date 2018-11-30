@@ -138,14 +138,14 @@ subroutine DumpParticles( particles, num_local, iteration, myid )
 
   ! locals
   
-  character :: itername*6, myidname*5, filename*50
+  character :: itername*6, myidname*5, filename*57
   integer ii, jj
   
   write(itername,fmt='(I6.6)') iteration
   write(myidname,fmt='(I5.5)') myid
 
   filename = 'outp/datfiles/particles/particles_'// &
-       itername//'p'//myidname//'.dat'
+       itername//'p'//myidname//'.picard.dat'
 
   open(unit=1,file=filename)
   do ii = 1, num_local
@@ -172,7 +172,7 @@ recursive subroutine DumpEfield( E, Nx_local, Ny_local, Nz_local, &
 
   ! locals
   integer :: ii, jj, kk, ll
-  character :: itername*7, myidname*5, filename*51, form*20, snumber*2
+  character :: itername*7, myidname*5, filename*58, form*20, snumber*2
  
   attemptno = attemptno + 1
   
@@ -180,7 +180,7 @@ recursive subroutine DumpEfield( E, Nx_local, Ny_local, Nz_local, &
   write(myidname,fmt='(I5.5)') myid
 
   ! Write the E-field: Ex Ey Ez
-  filename = 'outp/datfiles/Efield/E_'//itername//'p'//myidname//'.dat'
+  filename = 'outp/datfiles/Efield/E_'//itername//'p'//myidname//'.picard.dat'
   open(unit=1,file=filename,err=97)
   do kk = 1, Nz_local+2
      do jj = 1, Ny_local+2
@@ -221,7 +221,7 @@ recursive subroutine DumpPotential( U, Nx_local, Ny_local, Nz_local, &
 
   ! locals
   integer :: ii, jj, kk, ll
-  character :: itername*7, myidname*5, filename*51, form*20, snumber*2
+  character :: itername*7, myidname*5, filename*58, form*20, snumber*2
 
   attemptno = attemptno +1
 
@@ -229,7 +229,8 @@ recursive subroutine DumpPotential( U, Nx_local, Ny_local, Nz_local, &
   write(myidname,fmt='(I5.5)') myid
 
   ! Write the potential
-  filename = 'outp/datfiles/potential/UE_'//itername//'p'//myidname//'.dat'
+  filename = 'outp/datfiles/potential/UE_'//itername//'p'//myidname// &
+       '.picard.dat'
   open(unit=1,file=filename,err=97)
   do kk = 1, Nz_local+2
     do jj = 1, Ny_local+2
@@ -271,7 +272,7 @@ recursive subroutine DumpDensity( N, Nx_local, Ny_local, Nz_local, &
   
   ! locals
   integer :: ii, jj, kk, ll
-  character :: itername*7, myidname*5, filename*51, form*20, snumber*2
+  character :: itername*7, myidname*5, filename*58, form*20, snumber*2
  
   attemptno = attemptno + 1
 
@@ -282,7 +283,8 @@ recursive subroutine DumpDensity( N, Nx_local, Ny_local, Nz_local, &
   ! Density: n1 n2 n3...
   ! We dump density, not particles per cell. Hence the division by dV below.
   write (form,fmt='(a,i5.5,a)') '(', Nspecies, '(E11.4E3,a))'
-  filename = 'outp/datfiles/density/n_'//itername//'p'//myidname//'.dat'
+  filename = 'outp/datfiles/density/n_'//itername//'p'//myidname// &
+       '.picard.dat'
   open(unit=1,file=filename,err=97)
   do kk = 1, Nz_local+2
     do jj = 1, Ny_local+2
@@ -322,7 +324,7 @@ recursive subroutine DumpFlux( F, Nx_local, Ny_local, Nz_local, &
   
   ! locals
   integer :: ii, jj, kk, ll
-  character :: itername*7, myidname*5, filename*51, form*20, snumber*2
+  character :: itername*7, myidname*5, filename*58, form*20, snumber*2
  
   attemptno = attemptno + 1
   
@@ -333,7 +335,7 @@ recursive subroutine DumpFlux( F, Nx_local, Ny_local, Nz_local, &
   do ll = 1, Nspecies
      write (snumber,fmt='(i2.2)') ll
      filename = 'outp/datfiles/flux/F'//snumber//'_'//itername//'p'// &
-          myidname//'.dat'
+          myidname//'.picard.dat'
      open(unit=1,file=filename,err=97)
      do kk = 1, Nz_local+2
         do jj = 1, Ny_local+2

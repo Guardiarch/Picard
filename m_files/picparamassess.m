@@ -8,9 +8,11 @@ R = 3.0 % heliocentric distance [AU] (Jesper used 2.56 AU)
 sf = 400; % squeeze factor that artificially increases B and decreases Q
 
 % The resolutions
-dt = 4e-7 % Imagine that we use this timestep
+dt = 3.0e-6 % Imagine that we use this timestep
 dx = 8    % Imagine that we use this grid cell size
 Lx = 720  % Imagine that we use this max(|x|)
+
+masse = 20*me % Heavy electrons, 20 times the real electron mass
 
 
 % solar wind parameters
@@ -28,7 +30,7 @@ nui = 8.28d-7/R^2 % ionisation frequency, high EUV
 %nui = 3.31d-7/R^2 % ionisation frequency, low EUV
 
 
-n=200e6*(nui/1.26e-7)*(Q/3.11e18)*min(3,(20/dx)^2) % plasma density
+n=62e6*(nui/1.26e-7)*(Q/3.11e18)*min(3,(20/dx)^2) % plasma density
                                                    % [m^-3] (scaling 
                                   % Jesper's result of 200 cm^-3). The
                                   % last factor which includes the min
@@ -39,10 +41,10 @@ n=200e6*(nui/1.26e-7)*(Q/3.11e18)*min(3,(20/dx)^2) % plasma density
 kTe = 15;    % electron temperature [eV]
 B = 4.9616482316929589e-9*sf; % B field [T] (Jesper had 1.78e-9*400=7.12e-7)
 
-fpe = sqrt(n*elc^2/me/eps0)/(2*pi)
-fce = (elc*B/me)/(2*pi)
+fpe = sqrt(n*elc^2/masse/eps0)/(2*pi)
+fce = (elc*B/masse)/(2*pi)
 
-vte = sqrt(2*kTe*elc/me)
+vte = sqrt(2*kTe*elc/masse)
 
 rge = vte/(2*pi*fce)
 
