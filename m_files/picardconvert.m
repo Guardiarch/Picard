@@ -151,7 +151,7 @@ else
     % an error happens after the writing of the lock file, this lock file
     % shall be removed so that future attempts are not blocked.
     try
-      dd = dir('outp/datfiles/Efield/E*p00000.dat');
+      dd = dir('outp/datfiles/Efield/E*p00000.picard.dat');
       Ntimesteps = length(dd);
       if Ntimesteps>0
         disp('Working on Efield.')
@@ -162,7 +162,7 @@ else
         Ez=zeros(Nx,Ny,Nz);
         iterationstring = dd(gg).name(3:9);
         iteration = str2num(iterationstring);
-        dd1 = dir(['outp/datfiles/Efield/E_' iterationstring 'p*.dat']);
+        dd1 = dir(['outp/datfiles/Efield/E_' iterationstring 'p*.picard.dat']);
         if length(dd1) ~= Nprocs
           error('Some file or other would seem to be missing.')
         end
@@ -234,7 +234,7 @@ else
     % an error happens after the writing of the lock file, this lock file
     % shall be removed so that future attempts are not blocked.
     try
-      dd = dir('outp/datfiles/potential/UE*p00000.dat');
+      dd = dir('outp/datfiles/potential/UE*p00000.picard.dat');
       Ntimesteps = length(dd);
       if Ntimesteps>0
         disp('Working on potential.')
@@ -243,7 +243,8 @@ else
         U=zeros(Nx,Ny,Nz);
         iterationstring = dd(gg).name(4:10);
         iteration = str2num(iterationstring);
-        dd1 = dir(['outp/datfiles/potential/UE_' iterationstring 'p*.dat']);
+        dd1 = dir(['outp/datfiles/potential/UE_' iterationstring ...
+                   'p*.picard.dat']);
         if length(dd1) ~= Nprocs
           error('Some file or other would seem to be missing.')
         end
@@ -307,7 +308,8 @@ else
     try
       disp('Working on flux.')
       for hh = 1:Nspecies
-        dd = dir(['outp/datfiles/flux/F' num2str(hh,'%2.2i') '*p00000.dat']);
+        dd = dir(['outp/datfiles/flux/F' num2str(hh,'%2.2i') ...
+                  '*p00000.picard.dat']);
         Ntimesteps = length(dd);
         for gg = 1:Ntimesteps
           Fx=zeros(Nx,Ny,Nz);
@@ -316,7 +318,7 @@ else
           iterationstring = dd(gg).name(5:11);
           iteration = str2num(iterationstring);
           dd1 = dir(['outp/datfiles/flux/F' num2str(hh,'%2.2i') '_' ...
-                     iterationstring 'p*.dat']);
+                     iterationstring 'p*.picard.dat']);
           if length(dd1) ~= Nprocs
             error('Some file or other would seem to be missing.')
           end
