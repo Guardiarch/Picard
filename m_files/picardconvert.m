@@ -75,7 +75,7 @@ else
     % an error happens after the writing of the lock file, this lock file
     % shall be removed so that future attempts are not blocked.
     try
-      dd = dir('outp/datfiles/density/n*p00000.dat');
+      dd = dir('outp/datfiles/density/n*p00000.picard.dat');
       Ntimesteps = length(dd);
       if Ntimesteps>0
         disp('Working on density.')
@@ -86,7 +86,7 @@ else
         end
         iterationstring = dd(gg).name(3:9);
         iteration = str2num(iterationstring);
-        dd1 = dir(['outp/datfiles/density/n_' iterationstring 'p*.dat']);
+        dd1 = dir(['outp/datfiles/density/n_' iterationstring 'p*.picard.dat']);
         if length(dd1) ~= Nprocs
           error('Some file or other would seem to be missing.')
         end
