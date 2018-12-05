@@ -19,6 +19,61 @@ ycorn = ymin + [0:Ny]*dxyz(2); y = 0.5*(ycorn(1:end-1)+ycorn(2:end));
 zcorn = zmin + [0:Nz]*dxyz(3); z = 0.5*(zcorn(1:end-1)+zcorn(2:end));
 Nprocs = iprocs*jprocs*kprocs;
 
+% Get species data and put it in a structure
+particle = struct();
+fid=fopen('inputpicarda1.m');
+for ii=1:Nspecies
+  % Defaults
+  ppc = []; % particles per cell
+  mass = [];    % mass [kg]
+  charge = [];  % charge [C]
+  upstreamdensity = [];  % upstream (SW) density [m^-3]
+  upstreamkelvin = [];   % solar wind temperature for this species
+  v0x = 0.0d3;               % solar wind velocity x component [m/s]
+  v0y = 0.0d3;               % solar wind velocity y component [m/s]
+  v0z = 0.0d3;               % solar wind velocity z component [m/s]
+  vn  = [];               % neutral gas radial velocity component
+  Qn  = [];               % neutral gas production rate [s^-1]
+  Ek  = [];               % excess energy in photo-ionisation [eV]
+  nu_i = [];              % ionisation frequency [s^-1]
+  cometion=[];             % If 'yes', a Galand model density profile is created
+                           % It should be 'no' for electrons.
+  productspecies =[];        % species number for the electrons that quasi-
+
+  theline=fgetl(fid);
+  if length(theline)<5,
+    theline=[theline '     '];
+  end
+  while ~(strcmp(theline(1:5),'%SPEC') | strcmp(theline(1:5),'%spec'))
+    theline=fgetl(fid);
+    if length(theline)<5,
+      theline=[theline '     '];
+    end
+  end
+  while ~(strcmp(theline(1:4),'%END') | strcmp(theline(1:4),'%end'))
+    eval(theline)
+    theline=fgetl(fid);
+    if length(theline)<4,
+      theline=[theline '    '];
+    end
+  end
+  particle(ii).ppc = ppc;
+  particle(ii).mass = mass;
+  particle(ii).charge = charge;
+  particle(ii).upstreamdensity = upstreamdensity;
+  particle(ii).v0x = v0x;
+  particle(ii).v0y = v0y;
+  particle(ii).v0z = v0z;
+  particle(ii).vn = vn;
+  particle(ii).Qn = Qn;
+  particle(ii).Ek = Ek;
+  particle(ii).nu_i = nu_i;
+  particle(ii).cometion = cometion;
+  particle(ii).productspecies = productspecies;
+end
+fclose(fid);
+
+
 % Get probe data and put it in a structure
 probestruct = struct();
 fid=fopen('inputpicarda1.m');
@@ -49,6 +104,7 @@ for ii=1:Nprobes
   [a b]=min(abs(z-zc));probestruct(ii).rc(3)=x(b);
   probestruct(ii).rprobe=rprobe;
 end
+fclose(fid);
 
 % Density
 % Prevent two processes from performing simultaneous conversions
@@ -75,6 +131,7 @@ else
     % an error happens after the writing of the lock file, this lock file
     % shall be removed so that future attempts are not blocked.
     try
+      species = struct();
       dd = dir('outp/datfiles/density/n*p00000.picard.dat');
       Ntimesteps = length(dd);
       if Ntimesteps>0
@@ -82,7 +139,7 @@ else
       end
         for gg = 1:Ntimesteps
         for hh = 1:Nspecies
-          particle(hh).density=zeros(Nx,Ny,Nz);
+          species(hh).density=zeros(Nx,Ny,Nz);
         end
         iterationstring = dd(gg).name(3:9);
         iteration = str2num(iterationstring);
@@ -97,7 +154,7 @@ else
               data = load(['outp/datfiles/density/' dd1(process+1).name]);
               for hh = 1:Nspecies
                 nlocal=reshape(data(:,hh),Nx/iprocs+2,Ny/jprocs+2,Nz/kprocs+2);
-                particle(hh).density(ii*Nx/iprocs+1:(ii+1)*Nx/iprocs, ...
+                species(hh).density(ii*Nx/iprocs+1:(ii+1)*Nx/iprocs, ...
                                      jj*Ny/jprocs+1:(jj+1)*Ny/jprocs, ...
                                      kk*Nz/kprocs+1:(kk+1)*Nz/kprocs) = ...
                     nlocal(2:end-1,2:end-1,2:end-1);
@@ -107,8 +164,8 @@ else
           end
         end
         filename = ['outp/density' iterationstring '.mat'];
-        save(filename, '-v7.3', 'particle', 'Nprocs', ...
-             'x', 'y', 'z', 'xcorn', 'ycorn', 'zcorn') 
+        save(filename, '-v7.3', 'particle', 'species', 'Nprocs', ...
+             'x', 'y', 'z', 'xcorn', 'ycorn', 'zcorn')
         for ii = 1:Nprocs
           delete(['outp/datfiles/density/' dd1(ii).name]);
         end
@@ -121,9 +178,12 @@ else
       felfelfel=lasterror;
       disp(felfelfel.message)
       delete('outp/datfiles/lock.density')
+      clear species
     end % end try
   end %  end if all_is_fine
 end % end if exist('datfiles/lock.density')
+
+
 
 
 % Efield
@@ -191,7 +251,7 @@ else
     end
         end
         filename = ['outp/Efield' iterationstring '.mat'];
-        save(filename, '-v7.3', 'Ex','Ey','Ez', 'Nprocs', ...
+        save(filename, '-v7.3', 'particle', 'Ex','Ey','Ez', 'Nprocs', ...
              'x', 'y', 'z', 'xcorn', 'ycorn', 'zcorn') 
         for ii = 1:Nprocs
           delete(['outp/datfiles/Efield/' dd1(ii).name]);
@@ -263,7 +323,7 @@ else
           end
         end
         filename = ['outp/potential' iterationstring '.mat'];
-        save(filename, '-v7.3', 'U', 'Nprocs', ...
+        save(filename, '-v7.3', 'particle', 'U', 'Nprocs', ...
              'x', 'y', 'z', 'xcorn', 'ycorn', 'zcorn') 
         for ii = 1:Nprocs
           delete(['outp/datfiles/potential/' dd1(ii).name]);
@@ -351,7 +411,7 @@ else
           end
           filename = ['outp/flux' num2str(hh,'%2.2i') '_' ...
                       iterationstring '.mat'];
-          save(filename, '-v7.3', 'Fx','Fy','Fz', 'Nprocs', ...
+          save(filename, '-v7.3', 'particle', 'Fx','Fy','Fz', 'Nprocs', ...
                'x', 'y', 'z', 'xcorn', 'ycorn', 'zcorn') 
           for ii = 1:Nprocs
             delete(['outp/datfiles/flux/' dd1(ii).name]);
@@ -425,8 +485,8 @@ else
               Eprobe = [Eprobe;data(:,2:4)];
             end
           end % end if EprobeInExistence
-          save(matfilename,'-v7.3','probestruct','timestepsEprobe', ...
-               'Eprobe');
+          save(matfilename,'-v7.3', 'particle', 'probestruct', ...
+               'timestepsEprobe', 'Eprobe');
           disp(['saved ' matfilename])
           clear Eprobe timestepsEprobe
           for ii=1:length(dd)
@@ -485,7 +545,7 @@ else
             Pprobe(data(jj,7)).r = [Pprobe(data(jj,7)).r; data(jj,1:3)];
             Pprobe(data(jj,7)).v = [Pprobe(data(jj,7)).v; data(jj,4:6)];
           end
-          save(matfilename,'-v7.3','probestruct','Pprobe');
+          save(matfilename,'-v7.3', 'particle', 'probestruct', 'Pprobe');
           disp(['saved ' matfilename])
           clear Pprobe data
         end

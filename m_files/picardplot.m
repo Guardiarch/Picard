@@ -15,7 +15,7 @@ for ii = 1:Nspecies
   set(gcf,'paperpositionmode','auto','position',[5 247-10*ii 1331 420])
   subplot(1,3,1)
   [a ix0]=min(abs(xcorn-0));
-  pp(:,:) = log10(mean(particle(ii).density([ix0-1:ix0],:,:),1));pp=pp.';
+  pp(:,:) = log10(mean(species(ii).density([ix0-1:ix0],:,:),1));pp=pp.';
   pp(isnan(pp) | isinf(pp)) = -15;
   ss=size(pp);
   pp=[[pp zeros(ss(1),1)];zeros(1,ss(2)+1)];
@@ -35,7 +35,7 @@ for ii = 1:Nspecies
   
   subplot(1,3,2)
   [a iy0]=min(abs(ycorn-0));
-  pp(:,:) = log10(mean(particle(ii).density(:,[iy0-1:iy0],:),2));pp=pp.';
+  pp(:,:) = log10(mean(species(ii).density(:,[iy0-1:iy0],:),2));pp=pp.';
   pp(isnan(pp) | isinf(pp)) = -15;
   ss=size(pp);
   pp=[[pp zeros(ss(1),1)];zeros(1,ss(2)+1)];
@@ -55,7 +55,7 @@ for ii = 1:Nspecies
 
   subplot(1,3,3)
   [a iz0]=min(abs(zcorn-0));
-  pp(:,:) = log10(mean(particle(ii).density(:,:,[iz0-1:iz0]),3));pp=pp.';
+  pp(:,:) = log10(mean(species(ii).density(:,:,[iz0-1:iz0]),3));pp=pp.';
   pp(isnan(pp) | isinf(pp)) = -15;
   ss=size(pp);
   pp=[[pp zeros(ss(1),1)];zeros(1,ss(2)+1)];

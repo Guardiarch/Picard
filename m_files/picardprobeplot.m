@@ -1,6 +1,14 @@
 % picardprobeplot plots data from the probes of the picard program
 
+if exist('cometframe') ~= 0
+  % Default to showing probe fields in the comet frame of reference
+  cometframe = logical(1);
+end
+
 run('inputpicarda1.m')
+
+
+
 
 fontname='utopia';
 
@@ -37,19 +45,43 @@ for ii= 1:Nprobes
                '$\,m, $y=' num2str(probestruct(ii).rc(2)) ...
                '$\,m, $z=' num2str(probestruct(ii).rc(3)) '$\,m'], ...
               'interpreter','latex','fontname',fontname,'fontsize',14)
-         axis equal
+        axis equal
         subplot(length(Pprobe),4,(jj-1)*4+2)
-        hist(Pprobe(jj).r(:,1))
+        minv = min(Pprobe(jj).v(:,1));
+        minbin = floor(minv*10^(-floor(log10(abs(minv))))) * ...
+                 10^(floor(log10(abs(minv))));
+        maxv = max(Pprobe(jj).v(:,1));
+        maxbin = ceil(maxv*10^(-floor(log10(abs(maxv))))) * ...
+                 10^(floor(log10(abs(maxv))));
+        bins=minbin+(maxbin-minbin)*(0.5+[0:9])/10;
+        hist(Pprobe(jj).v(:,1),bins)
+        aa=axis;axis([minbin maxbin aa(3:4)])
         xlabel('$v_{x}$','interpreter','latex', ...
                'fontname',fontname,'fontsize',18)
         subplot(length(Pprobe),4,(jj-1)*4+3)
-        hist(Pprobe(jj).r(:,2))
+        minv = min(Pprobe(jj).v(:,2));
+        minbin = floor(minv*10^(-floor(log10(abs(minv))))) * ...
+                 10^(floor(log10(abs(minv))));
+        maxv = max(Pprobe(jj).v(:,2));
+        maxbin = ceil(maxv*10^(-floor(log10(abs(maxv))))) * ...
+                 10^(floor(log10(abs(maxv))));
+        bins=minbin+(maxbin-minbin)*(0.5+[0:9])/10;
+        hist(Pprobe(jj).v(:,2),bins)
+        aa=axis;axis([minbin maxbin aa(3:4)])
         xlabel('$v_{y}$','interpreter','latex', ...
                'fontname',fontname,'fontsize',18)
         title(['Species ' num2str(jj)], ...
               'interpreter','latex','fontname',fontname,'fontsize',14)
         subplot(length(Pprobe),4,(jj-1)*4+4)
-        hist(Pprobe(jj).r(:,3))
+        minv = min(Pprobe(jj).v(:,3));
+        minbin = floor(minv*10^(-floor(log10(abs(minv))))) * ...
+                 10^(floor(log10(abs(minv))));
+        maxv = max(Pprobe(jj).v(:,3));
+        maxbin = ceil(maxv*10^(-floor(log10(abs(maxv))))) * ...
+                 10^(floor(log10(abs(maxv))));
+        bins=minbin+(maxbin-minbin)*(0.5+[0:9])/10;
+        hist(Pprobe(jj).v(:,3),bins)
+        aa=axis;axis([minbin maxbin aa(3:4)])
         xlabel('$v_{z}$','interpreter','latex', ...
                'fontname',fontname,'fontsize',18)
       end
