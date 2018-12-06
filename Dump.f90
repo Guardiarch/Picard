@@ -1,5 +1,6 @@
 recursive subroutine  DumpDump(Nspecies, num_local, max_per_proc, &
-     particles, myid, iteration, attemptno, Nretries)
+     particles, myid, iteration, U, Nx_local, Ny_local, Nz_local, &
+     attemptno, Nretries)
 
   use SpecificTypes
   use mpi
@@ -8,8 +9,9 @@ recursive subroutine  DumpDump(Nspecies, num_local, max_per_proc, &
   implicit none
 
   integer, intent(in) :: Nspecies, max_per_proc, iteration, myid, Nretries, &
-       num_local
+       num_local, Nx_local, Ny_local, Nz_local
   integer, intent(inout) :: attemptno
+  real*8, intent(in) :: U(Nx_local+2,Ny_local+2,Nz_local+2)
   type(particlearrays) particles
 
   integer ierr, ii, jj
@@ -23,10 +25,12 @@ recursive subroutine  DumpDump(Nspecies, num_local, max_per_proc, &
   filename='dumps/dump_particles.p'//pnumber//'.picard.dump' 
   open(unit=1,form='unformatted',file=tmpfile,status='replace',err=97)
   write (1,err=98) num_local
-  write (1,err=98) (particles%species(ii), ii=1, max_per_proc)
-  do jj = 1, max_per_proc
+  write (1,err=98) (particles%species(ii), ii=1, num_local)
+  do jj = 1, num_local
      write (1,err=98) (particles%coordinates(ii,jj), ii=1,6)
   end do
+  ! and the potential
+  write (1,err=98) U
   close (1,err=99)
 
   ! Make sure all processes have written their temporary files 
@@ -64,7 +68,8 @@ recursive subroutine  DumpDump(Nspecies, num_local, max_per_proc, &
 99 write (*,*) 'DumpDump: error in close statement, myid=', myid
 100 if (attemptno<=Nretries) then
      call DumpDump(Nspecies, num_local, max_per_proc, &
-          particles, myid, iteration, attemptno, Nretries)
+          particles, myid, iteration, U, Nx_local, Ny_local, Nz_local, &
+          attemptno, Nretries)
   end if
 
 end subroutine DumpDump
@@ -72,21 +77,27 @@ end subroutine DumpDump
 !------------------------------------------------------------------------
 
 recursive subroutine  LoadDump(Nspecies, num_local, max_per_proc, &
-     particles, myid, iteration, attemptno, Nretries)
+     particles, myid, iteration, U, Nx_local, Ny_local, Nz_local, &
+     attemptno, Nretries)
 
   use SpecificTypes
 
   implicit none
 
   integer, intent(in) :: Nspecies, max_per_proc,  myid, Nretries
-  integer, intent(inout) :: num_local, iteration, attemptno
+  integer, intent(inout) :: num_local, Nx_local, Ny_local, Nz_local, &
+       iteration, attemptno
+  real*8, intent(inout) :: U(Nx_local+2,Ny_local+2,Nz_local+2)
   type(particlearrays) particles
 
   integer ierr, ii, jj
   character filename*43, pnumber*5
 
+  U = 0.0d0
+
   attemptno = attemptno + 1
 
+  
 ! Read the iteration number
   filename = 'dumps/dump_iteration.picard.dump'
   open(unit=1,file=filename,status='old',err=97)
@@ -99,12 +110,13 @@ recursive subroutine  LoadDump(Nspecies, num_local, max_per_proc, &
   filename='dumps/dump_particles.p'//pnumber//'.picard.dump' 
   open(unit=1,form='unformatted',file=filename,status='old',err=97)
   read (1,err=98) num_local
-  read (1,err=98) (particles%species(ii), ii=1, max_per_proc)
-  do jj = 1, max_per_proc
+  read (1,err=98) (particles%species(ii), ii=1, num_local)
+  do jj = 1, num_local
      read (1,err=98) (particles%coordinates(ii,jj), ii=1,6)
   end do
+  ! and the potential
+  read (1,err=98) U  
   close (1,err=99)
-
   return
 
 ! Error handling section
@@ -116,7 +128,8 @@ recursive subroutine  LoadDump(Nspecies, num_local, max_per_proc, &
 99 write (*,*) 'LoadDump: error in close statement, myid=', myid
 100 if (attemptno<=Nretries) then
      call LoadDump(Nspecies, num_local, max_per_proc, &
-          particles, myid, iteration, attemptno, Nretries)
+          particles, myid, iteration, U, Nx_local, Ny_local, Nz_local, &
+          attemptno, Nretries)
   else
      write (*,*) 'LoadDump: disk access failed ',Nretries,' times, myid=', myid
      stop

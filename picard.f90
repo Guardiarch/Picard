@@ -62,8 +62,8 @@ program picard
   integer Nx_local, Ny_local, Nz_local
   ! number of species included in the simulation
   integer Nspecies
-  ! should be a multiple of 8
-  integer, parameter :: max_per_proc = 2**24
+  ! should be a multiple of 8, says Jesper. I don't see why.
+  integer, parameter :: max_per_proc = 2**25
 
 
 ! Physical and mathematical constants in SI units
@@ -423,7 +423,8 @@ program picard
  if (startfromdumpfile) then
     attempts = 0
     call LoadDump(Nspecies, num_local, max_per_proc, &
-         particles, myid, iter_start, attempts, Nretries)
+         particles, myid, iter_start, U, Nx_local, Ny_local, Nz_local, &
+         attempts, Nretries)
  else
     iter_start = 0
     ! Initialise the domain with a solar wind plasma
@@ -436,31 +437,32 @@ program picard
          max_per_proc,num_local,Nspecies, &
          Nx_local,Ny_local,Nz_local,dt, &
          nucleusradius,flatradius,Galandradius,fadeoutradius,species)
+
+    if (writeFields) then
+       call ParticlesGridifyAll(F,N,C,particles, &
+            Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,dxyz,&
+            xmin,xmax,ymin,ymax,zmin,zmax,Nspecies, &
+            Nx_local,Ny_local,Nz_local,max_per_proc,num_local,&
+            xflow,yflow,zflow,iprocs,jprocs,kprocs,species,myid)
+       call BCpotentials(U,C,D,xmin,xmax,ymin,ymax,zmin,zmax, &
+            Nx_local,Ny_local,Nz_local,Nx,Ny,Nz,&
+            xflow,yflow,zflow,Nspecies,iprocs,jprocs,kprocs,myid)
+       call CalcEpotential(U,C,Nx_local,Ny_local,Nz_local, &
+            Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,xflow,yflow,zflow,&
+            xmin,xmax,ymin,ymax,zmin,zmax,dxyz,maxerr,maxit, &
+            iprocs,jprocs,kprocs,Nspecies,myid)
+       call CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz, &
+            xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
+       call BCfields(E,U,B0,E0,Nx_local,Ny_local,Nz_local, &
+            xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
+       call MPI_barrier( MPI_comm_world, ierr)
+    end if
+
  end if
 
+ 
  ! Initialise time
  time = dble(iter_start)*dt
-
-  if (writeFields) then
-     call ParticlesGridifyAll(F,N,C,particles, &
-          Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,dxyz,&
-          xmin,xmax,ymin,ymax,zmin,zmax,Nspecies, &
-          Nx_local,Ny_local,Nz_local,max_per_proc,num_local,&
-          xflow,yflow,zflow,iprocs,jprocs,kprocs,species,myid)
-     call BCpotentials(U,C,D,xmin,xmax,ymin,ymax,zmin,zmax, &
-          Nx_local,Ny_local,Nz_local,Nx,Ny,Nz,&
-          xflow,yflow,zflow,Nspecies,iprocs,jprocs,kprocs,myid)
-     call CalcEpotential(U,C,Nx_local,Ny_local,Nz_local, &
-          Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max,xflow,yflow,zflow,&
-          xmin,xmax,ymin,ymax,zmin,zmax,dxyz,maxerr,maxit, &
-          iprocs,jprocs,kprocs,Nspecies,myid)
-     call CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz, &
-          xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
-     call BCfields(E,U,B0,E0,Nx_local,Ny_local,Nz_local, &
-          xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
-     call MPI_barrier( MPI_comm_world, ierr)
-  end if
-
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -673,7 +675,8 @@ program picard
     if ( modulo(iteration,dump_period_dump)==0 ) then
        attempts = 0
        call DumpDump(Nspecies, num_local, max_per_proc, &
-            particles, myid, iteration, attempts, Nretries)
+            particles, myid, iteration, U, Nx_local, Ny_local, Nz_local, &
+            attempts, Nretries)
        if (myid == 0) then
           write (*,fmt='(a,i7,a, e12.6)') 'iteration = ', iteration, &
                '  t = ', dble(iteration)*dt

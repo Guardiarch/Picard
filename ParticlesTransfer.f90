@@ -175,6 +175,15 @@ end if
      write (*,*) 'ParticlesTransfer, 5, ierr=',ierr,' myid=',myid
   end if
 
+  if ( num_local + size_pos_recv + size_neg_recv > max_per_proc ) then
+     write (*,*) 'ParticlesTransfer: Cannot put ', &
+          num_local + size_pos_recv + size_neg_recv, &
+          ' particles into a buffer of size ', max_per_proc
+     write (*,*) 'myid=', myid
+     stop
+  end if
+
+  
 ! Allocate receive buffers
   allocate( neg_recv%species(size_neg_recv) )
   allocate( neg_recv%coordinates(6, size_neg_recv) )
@@ -472,6 +481,14 @@ end if
      write (*,*) 'ParticlesTransfer, 36, ierr=',ierr,' myid=',myid
   end if
 
+  if ( num_local + size_pos_recv + size_neg_recv > max_per_proc ) then
+     write (*,*) 'ParticlesTransfer: Cannot put ', &
+          num_local + size_pos_recv + size_neg_recv, &
+          ' particles into a buffer of size ', max_per_proc
+     write (*,*) 'myid=', myid
+     stop
+  end if
+  
 ! Allocate receive buffers
   allocate( neg_recv%species(size_neg_recv) )
   allocate( neg_recv%coordinates(6, size_neg_recv) )
@@ -769,6 +786,14 @@ end if
      write (*,*) 'ParticlesTransfer, 67, ierr=',ierr,' myid=',myid
   end if
 
+  if ( num_local + size_pos_recv + size_neg_recv > max_per_proc ) then
+     write (*,*) 'ParticlesTransfer: Cannot put ', &
+          num_local + size_pos_recv + size_neg_recv, &
+          ' particles into a buffer of size ', max_per_proc
+     write (*,*) 'myid=', myid
+     stop
+  end if
+  
 ! Allocate receive buffers
   allocate( neg_recv%species(size_neg_recv) )
   allocate( neg_recv%coordinates(6, size_neg_recv) )

@@ -1,13 +1,31 @@
 % picardprobeplot plots data from the probes of the picard program
+%
+% HG 2018-12-05
 
-if exist('cometframe') ~= 0
+if exist('cometframe') ~= 1
   % Default to showing probe fields in the comet frame of reference
   cometframe = logical(1);
 end
 
 run('inputpicarda1.m')
 
+% Compute the solar wind E field, assuming the solar wind velocity is the
+% velocity of species 2.
+dd=dir('outp/Eprobe*.mat');
+load(['outp/' dd(1).name])
+vsw = [particle(2).v0x particle(2).v0y particle(2).v0z];
+B0 = [B0x B0y B0z];
+Esw = -cross(vsw,B0);
 
+% Eplus is added to the field to get us from the solar wind frame to the
+% comet frame if that is desired. Otherwise Eplus is zero.
+if cometframe
+  Eplus = Esw;
+  frametext = 'Comet frame';
+else
+  Eplus = [0 0 0];
+  frametext = 'SW frame';
+end
 
 
 fontname='utopia';
@@ -19,13 +37,13 @@ for ii= 1:Nprobes
   figure(10000+ii)
   clf
   set(gcf,'paperpositionmode','auto')
-  plot(timestepsEprobe*dt,Eprobe)
+  plot(timestepsEprobe*dt,Eprobe+Eplus)
   set(gca,'fontname',fontname,'fontsize',14)
   legend('E_x','E_y','E_z')
   grid on
   title(['$x=' num2str(probestruct(ii).rc(1)) ...
          '$\,m, $y=' num2str(probestruct(ii).rc(2)) ...
-         '$\,m, $z=' num2str(probestruct(ii).rc(3)) '$\,m'], ...
+         '$\,m, $z=' num2str(probestruct(ii).rc(3)) '$\,m  ' frametext], ...
         'interpreter','latex','fontname',fontname,'fontsize',18)
   
   dd=dir(['outp/Pprobe_iter*' num2str(ii,'%4.4i') '.mat']);
