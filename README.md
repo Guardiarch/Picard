@@ -7,7 +7,7 @@ This is a particle-in-cell plasma code 'picard' was developed by Jesper Lindkvis
  High Performance Computing Center North (HPC2N), Umeå University, Sweden.
 Jesper Lindkvist was funded by the Swedish National Space Board (SNSB project 201/15).
 @author    :  Jesper Lindkvist
-Email      :  jesper.lindkvist@umu.se
+Email      :  jesper.lindkvist.se@gmail.com
 
 
 The position and velocity of macroparticles are leap-frogged in time.
