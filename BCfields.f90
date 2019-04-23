@@ -1,12 +1,10 @@
-subroutine BCfields(E,U,B0,E0,Nx_local,Ny_local,Nz_local, &
+subroutine BCfields(E,Nx_local,Ny_local,Nz_local, &
      xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
 
   implicit none
 
   logical, intent(in) :: xflow,yflow,zflow
   integer, intent(in) :: Nx_local,Ny_local,Nz_local,iprocs,jprocs,kprocs,myid
-  real*8 :: B0(4), E0(4)
-  real*8, intent(in) :: U(Nx_local+2,Ny_local+2,Nz_local+2)
   real*8, intent(inout) :: E(3,Nx_local+2,Ny_local+2,Nz_local+2)
 
   real*8, parameter :: mu0  = 1.25663706143591729538505735331180d-6  ! Magnetic constant [ SI ]
@@ -65,25 +63,7 @@ subroutine BCfields(E,U,B0,E0,Nx_local,Ny_local,Nz_local, &
 
 ! OUTFLOW
     if (myid - idnx .lt. 1) then
-
-!      E(1,1:2,:,:)                   = E(1,1:2,:,:) + E0(1)
-!      E(2,1:2,:,:)                   = E(2,1:2,:,:) + E0(2)
-!      E(3,1:2,:,:)                   = E(3,1:2,:,:) + E0(3)
-!      Sx(:,:)                        = (E(2,2,:,:)*B0(3)-E(3,2,:,:)*B0(2))/mu0
-!      E(1,1,:,:)                     = E(1,2,:,:) - (Sx(:,:)/abs(Sx(:,:))+1.0d0)*( E(1,2,:,:) - B0(1)* &
-!                                  (E(1,2,:,:)*B0(1)+E(2,2,:,:)*B0(2)+E(3,2,:,:)*B0(3))/B0(4)**2 )
-!      E(2,1,:,:)                     = E(2,2,:,:) - (Sx(:,:)/abs(Sx(:,:))+1.0d0)*( E(2,2,:,:) - B0(2)* &
-!                                  (E(1,2,:,:)*B0(1)+E(2,2,:,:)*B0(2)+E(3,2,:,:)*B0(3))/B0(4)**2 )
-!      E(3,1,:,:)                     = E(3,2,:,:) - (Sx(:,:)/abs(Sx(:,:))+1.0d0)*( E(3,2,:,:) - B0(3)* &
-!                                  (E(1,2,:,:)*B0(1)+E(2,2,:,:)*B0(2)+E(3,2,:,:)*B0(3))/B0(4)**2 )
-!      E(1,1:2,:,:)                   = E(1,1:2,:,:) - E0(1)
-!      E(2,1:2,:,:)                   = E(2,1:2,:,:) - E0(2)
-!      E(3,1:2,:,:)                   = E(3,1:2,:,:) - E0(3)
-
-
-!      E(:,1:2,:,:)                     = 0.0d0
-      E(:,1,:,:)                     = 0.0d0
-
+       E(:,1,:,:)                     = 0.0d0
     end if
     
   end if

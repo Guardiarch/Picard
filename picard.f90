@@ -453,7 +453,7 @@ program picard
             iprocs,jprocs,kprocs,Nspecies,myid)
        call CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz, &
             xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
-       call BCfields(E,U,B0,E0,Nx_local,Ny_local,Nz_local, &
+       call BCfields(E,Nx_local,Ny_local,Nz_local, &
             xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
        call MPI_barrier( MPI_comm_world, ierr)
     end if
@@ -514,7 +514,7 @@ program picard
        call CalcEfield(E,U,Nx_local,Ny_local,Nz_local,dxyz, &
             xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
 
-       call BCfields(E,U,B0,E0,Nx_local,Ny_local,Nz_local, &
+       call BCfields(E,Nx_local,Ny_local,Nz_local, &
             xflow,yflow,zflow,iprocs,jprocs,kprocs,myid)
 
     end if

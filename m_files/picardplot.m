@@ -75,7 +75,7 @@ for ii = 1:Nspecies
   ylabel('y','fontname',fontname,'fontsize',18)
   colorbar
   cax=caxis;
-  caxis([5 cax(2)])
+  caxis([5 max(cax(2),5.01)])
   title(['n_{' num2str(ii) '}'],'fontname',fontname,'fontsize',14)
 end
 
@@ -482,12 +482,14 @@ end
 
 
 if 3==4
-  h=get(0,'children')
+  h=get(0,'children');
+  figlist=[];for ii=1:length(h);figlist=[figlist h(ii).Number];end
+  [y, ind]=sort(figlist);
   ccc = pwd;
   cd ~
-  for ii =1:length(h)
+  for ii =1:length(ind)
     filename = ['fig' num2str(ii,'%0.2d') '.png'];
-    print(h(ii),'-r600','-dpng',filename)
+    print(h(ind(ii)),'-r600','-dpng',filename)
   end
   cd(ccc)
 end

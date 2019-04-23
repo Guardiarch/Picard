@@ -34,7 +34,6 @@ subroutine BCpotentials(U,C,D,xmin,xmax,ymin,ymax,zmin,zmax, &
   bj = mod(myid/iprocs+jprocs, jprocs)
   bk = mod(myid/(iprocs*jprocs)+kprocs, kprocs)
 
-  U = 0.0d0
   Ux0_loc = 0.0d0
   Ux1_loc = 0.0d0
   Uy0_loc = 0.0d0

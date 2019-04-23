@@ -1,16 +1,16 @@
 %GENERAL PARAMETERS
-iter_end = 100;       % The iteration after which execution ends
-startfromdumpfile='no';  % if 'yes' the distribution is read from the
-                         % dumps directory
-dump_period_dump=1000;   % number of iterations between dumps one can start from
-dump_period_particles=100000; % number of iterations between particle dumps
-dump_period_pprobes=1000; % number of iteration between particle probe dumps
-dump_period_fields=500;  % number of iterations between field dumps
-write_period_screen=100; % number of iterations between showing onscreen
+iter_end = 1000;        % The iteration after which execution ends
+startfromdumpfile='no'; % if 'yes' the distribution is read from the
+                        % dumps directory
+dump_period_dump=200;   % number of iterations between dumps one can start from
+dump_period_particles=10000000; % number of iterations between particle dumps
+dump_period_pprobes=200; %number of iterations between particle probe dumps
+dump_period_fields=200;  % number of iterations between field dumps
+write_period_screen=10;  % number of iterations between showing onscreen
                          % life signs.
 
 Nspecies = 4;        % number of species included in the simulation
-dt   =  4.0d-7;      % timestep
+dt   =  3.0d-6;      % timestep
 iprocs = 8;          % processes in x dimension, should be multiple of 2
 jprocs = 8;          % processes in y dimension, should be multiple of 2
 kprocs = 8;          % processes in z dimension, should be multiple of 2
@@ -26,20 +26,23 @@ ymax =  960.0d0;     % physical domain
 zmax =  960.0d0;     % physical domain
 
 nucleusradius = 5.0e0;   % radius of the nucleus [m], 2.0d3/400.0d0
-flatradius = 2.5e1;      % radius of flat density part [m], 1.0d4/400.0d0
-Galandradius = 8.0e2;    % outer radius of Galand model
-fadeoutradius = 8.8e2;   % radius at which the cometary ion density is zero
+flatradius = 1.0e1;      % radius of flat density part [m]. Any value is
+                         % allowed, but it should be 2*nucleusradius to
+                         % cap the profile at its maximum value
+Galandradius = 8.5e2;    % outer radius of Galand model
+fadeoutradius = 9.3e2;   % radius at which the cometary ion density is zero
 
 B0x = 0.0d-9;                % Constant magnetic field in the simulation region.
 B0y = 1.9846592926771838d-6; % 5nT is in the range observed (Goetz et al. 2017)
 B0z = 0.0d-9;                % Scaled thus: 400.0d0*4.9616482316929589d-9
 
-Nprobes = 5;                 % Number of probes defined below
+Nprobes = 14;                % Number of probes defined below
 %END
 
 %SPECIES 1 - electrons. Species 1 must be electrons.
 ppc = 64; % particles per cell, will be recomputed for SW electrons
-mass = 9.10938356d-31;     % mass [kg]
+%mass = 9.10938356d-31;     % mass [kg]
+mass = 1.821876712d-29;     % mass [kg] me*20 = 1.821876712e-29 kg
 charge = -1.602176634d-19; % charge [C]
 upstreamdensity = 7.78d5;  % upstream (SW) density [m^-3]. 
 upstreamkelvin = 7.21d4;   % solar wind temperature for this species
@@ -103,7 +106,8 @@ productspecies = 4;        % Species number for the electron produced
 %SPECIES 4 - electrons. These shall be electrons created in ionisations
 ppc = 16;                  % particles per cell relative the upstream
                            % electron (species 1) value
-mass = 9.10938356d-31;     % mass [kg]
+%mass = 9.10938356d-31;     % mass [kg]
+mass = 1.821876712d-29;     % mass [kg] me*20 = 1.821876712e-29 kg
 charge = -1.602176634d-19; % charge [C]
 upstreamdensity = 0.0d0;   % will be recomputed for SW electrons [m^-3]
 upstreamkelvin = 0.0d0;    % solar wind temperature for this species
@@ -128,7 +132,7 @@ productspecies = 0;        % Species number for the electron produced
 % have (xc,yc,zc) at a cell boundary, it is not clear where the nearest
 % centre is.
 
-%PROBE 1
+%PROBE 1 as near the centre as possible
 xc = 4.0d0;                % x coordinate of probe
 yc = 4.0d0;                % y coordinate of probe
 zc = 4.0d0;                % z coordinate of probe
@@ -136,34 +140,106 @@ rprobe = 4.0e0;            % Probe radius for particle saves.
                            % If rprobe<=0, no particles are saved.
 %END
 
-%PROBE 2
-xc =-4.0d0;                % x coordinate of probe
+%PROBE 2 somewhat to the positive x side, but still in the flat part
+xc =20.0d0;                % x coordinate of probe
 yc =-4.0d0;                % y coordinate of probe
 zc =-4.0d0;                % z coordinate of probe
-rprobe =-1.0e0;            % Probe radius for particle saves.
+rprobe =4.0e0;             % Probe radius for particle saves.
                            % If rprobe<=0, no particles are saved.
 %END
 
-%PROBE 3
+%PROBE 3 opposite from probe 2
+xc =-20.0d0;               % x coordinate of probe
+yc = 4.0d0;                % y coordinate of probe
+zc = 4.0d0;                % z coordinate of probe
+rprobe = 4.0e0;            % Probe radius for particle saves.
+                           % If rprobe<=0, no particles are saved.
+%END
+
+%PROBE 4 same distance from the origin but in the y direction
 xc = 4.0d0;                % x coordinate of probe
-yc = 12.0d0;               % y coordinate of probe
+yc =20.0d0;                % y coordinate of probe
 zc = 4.0d0;                % z coordinate of probe
 rprobe = 4.0e0;            % Probe radius for particle saves.
                            % If rprobe<=0, no particles are saved.
 %END
 
-%PROBE 4
-xc = 100.0d0;              % x coordinate of probe
+%PROBE 5 same distance from the origin but in the -y direction
+xc =-4.0d0;                % x coordinate of probe
+yc =-20.0d0;               % y coordinate of probe
+zc =-4.0d0;                % z coordinate of probe
+rprobe = 4.0e0;            % Probe radius for particle saves.
+                           % If rprobe<=0, no particles are saved.
+%END
+
+%PROBE 6 and z
+xc = 4.0d0;                % x coordinate of probe
+yc = 4.0d0;                % y coordinate of probe
+zc =20.0d0;                % z coordinate of probe
+rprobe = 4.0e0;            % Probe radius for particle saves.
+                           % If rprobe<=0, no particles are saved.
+%END
+
+%PROBE 7 and -z
+xc =-4.0d0;                % x coordinate of probe
 yc =-4.0d0;                % y coordinate of probe
+zc =-20.0d0;               % z coordinate of probe
+rprobe = 4.0e0;            % Probe radius for particle saves.
+                           % If rprobe<=0, no particles are saved.
+%END
+
+%PROBE 8 farther away
+xc =100.0d0;               % x coordinate of probe
+yc = 4.0d0;                % y coordinate of probe
 zc = 4.0d0;                % z coordinate of probe
 rprobe = 4.0e0;            % Probe radius for particle saves.
                            % If rprobe<=0, no particles are saved.
 %END
 
-%PROBE 5
-xc = -100.0d0;             % x coordinate of probe
-yc =-4.0d0;                % y coordinate of probe
-zc = 4.0d0;                % z coordinate of probe
-rprobe = 0.0e0;            % Probe radius for particle saves.
+%PROBE 9 possible Rosetta position 
+xc =  4.0d0;               % x coordinate of probe
+yc =100.0d0;               % y coordinate of probe
+zc =  4.0d0;               % z coordinate of probe
+rprobe = 4.0e0;            % Probe radius for particle saves.
+                           % If rprobe<=0, no particles are saved.
+%END
+
+%PROBE 10 possible Rosetta position 
+xc =  4.0d0;               % x coordinate of probe
+yc =  4.0d0;               % y coordinate of probe
+zc =100.0d0;               % z coordinate of probe
+rprobe = 4.0e0;            % Probe radius for particle saves.
+                           % If rprobe<=0, no particles are saved.
+%END
+
+%PROBE 11
+xc =-100.0d0;              % x coordinate of probe
+yc =   4.0d0;              % y coordinate of probe
+zc =   4.0d0;              % z coordinate of probe
+rprobe = 4.0e0;            % Probe radius for particle saves.
+                           % If rprobe<=0, no particles are saved.
+%END
+
+%PROBE 12
+xc =   4.0d0;              % x coordinate of probe
+yc =-100.0d0;              % y coordinate of probe
+zc =   4.0d0;              % z coordinate of probe
+rprobe = 4.0e0;            % Probe radius for particle saves.
+                           % If rprobe<=0, no particles are saved.
+%END
+
+%PROBE 13
+xc =   4.0d0;              % x coordinate of probe
+yc =   4.0d0;              % y coordinate of probe
+zc =-100.0d0;              % z coordinate of probe
+rprobe = 4.0e0;            % Probe radius for particle saves.
+                           % If rprobe<=0, no particles are saved.
+%END
+
+%PROBE 14 far on the nightside
+xc =-500.0d0;              % x coordinate of probe
+yc =  16.0d0;              % y coordinate of probe
+zc =  16.0d0;              % z coordinate of probe
+rprobe =16.0e0;            % Probe radius for particle saves.
                            % If rprobe<=0, no particles are saved.
 %END
