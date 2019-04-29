@@ -24,3 +24,13 @@ in the frame of zero E-field (solar wind frame), assuming open boundary
 conditions (no charge contribution from outside the domain, and zero
 potential at infinity).
  
+dirspicard         creates the necessary subdirectories in your working
+		   directory
+packthingspicard   moves and packs the output into .tgz files then
+		   rebuilds the outp directory
+packthingspicard   just packs things - nothing else
+m_files		   is a directory containing matlab m-files for
+		   postprocessing purposes
+
+
+		 
