@@ -19,8 +19,6 @@ subroutine AdvancePosition(particles, dt, max_per_proc, num_local)
           particles%coordinates(4:6, ii)*dt
   end do
 
-  !  real_particles(1:3, 1:num_local) = real_particles(1:3, 1:num_local) + real_particles(4:6, 1:num_local)*dt
-
 
   return
 end subroutine AdvancePosition

@@ -1,13 +1,5 @@
 subroutine CalcDistance(D,Nx,Ny,Nz,dxyz,xflow,yflow,zflow)
 
-! This is the initialization of the 'distance matrix' (actually the 
-! inverse distance) that is needed in the Open Boundary Solver. On 
-! a PC or other small cache machine (256KB cache) it may be faster 
-! to calculate this distance each time it is needed, on large cache
-! machines such as the Blades (8MB cache) the method employed here 
-! is more efficient. 
-
-
 ! No implicit varaibles
   implicit none
 
