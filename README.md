@@ -2,8 +2,8 @@
 3D Electrostatic Plasma Solver
 
 
-This is a particle-in-cell plasma code 'picard' was developed by
-Jesper Lindkvist and Herbert Gunell with start in 2016 using
+This is a particle-in-cell plasma code 'picard' that was developed
+by Jesper Lindkvist and Herbert Gunell with start in 2016 using
 resources provided by the Swedish National Infrastructure for
 Computing (SNIC) at the High Performance Computing Center North
 (HPC2N), Umeå University, Sweden. Jesper Lindkvist was funded by
