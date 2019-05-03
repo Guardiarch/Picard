@@ -1,8 +1,6 @@
 subroutine CalcDistance(D,Nx,Ny,Nz,dxyz,xflow,yflow,zflow)
 
-! No implicit varaibles
   implicit none
-
 
 ! Parameters
   logical, intent(in) :: xflow, yflow, zflow

@@ -70,10 +70,6 @@ subroutine BCoutflow(particles,Lx_min,Lx_max,Ly_min,Ly_max,Lz_min,Lz_max, &
        delete = .true.
     end if
 
-!    if ( any( isnan(particles%coordinates(:,pp)) ) ) then
-!      delete = .true.
-!    end if    
-
     ! Actual removal
     if (delete) then
       if (pp .eq. num_local) then

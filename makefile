@@ -3,6 +3,7 @@ OBJECTS =  SpecificTypes.o picard.o AdvancePosition.o AdvanceVelocity.o BCfields
 
 TARGET  = picard
 
+# Make the changes you need here in order to make it work on your system
 #FC       = mpiifort
 FC       = $(HOME)/mpich2/bin/mpif90
 #OFLAGS   = -O3 # -mcmodel=medium -shared-intel

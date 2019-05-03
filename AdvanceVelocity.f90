@@ -170,7 +170,8 @@ subroutine AdvanceVelocityExp(particles,E,B0,Lx_min,Ly_min,Lz_min,dxyz, &
   do pp = num_local, 1, -1
 
 ! Start interpolation of fields to particle positions.
-! Loop over x, y, and z directions to find the index corresponding to the lowest x, y, z, which the particle should have a force from.
+! Loop over x, y, and z directions to find the index corresponding
+! to the lowest x, y, z, which the particle should have a force from.
 
     rest(1) = dmod( particles%coordinates(1,pp)-Lx_min+0.5d0*dxyz(1), dxyz(1) )
     rest(2) = dmod( particles%coordinates(2,pp)-Ly_min+0.5d0*dxyz(2), dxyz(2) )
@@ -224,7 +225,8 @@ subroutine AdvanceVelocityExp(particles,E,B0,Lx_min,Ly_min,Lz_min,dxyz, &
       end if
     else
   
-    ! Calculate vmin by moving to the frame where the ambient electric field is zero
+      ! Calculate vmin by moving to the frame where the ambient
+      ! electric field is zero
       vmin(:) = particles%coordinates(4:6,pp) - ve(1:3)
 
     ! Add magnetic field (rotation)
@@ -288,7 +290,8 @@ subroutine AdvanceVelocityImp(particles,E,B0,Lx_min,Ly_min,Lz_min,dxyz, &
   do pp = num_local, 1, -1
 
 ! Start interpolation of fields to particle positions.
-! Loop over x, y, and z directions to find the index corresponding to the lowest x, y, z, which the particle should have a force from.
+! Loop over x, y, and z directions to find the index corresponding
+! to the lowest x, y, z, which the particle should have a force from.
 
     rest(1) = dmod( particles%coordinates(1,pp)-Lx_min+0.5d0*dxyz(1), dxyz(1) )
     rest(2) = dmod( particles%coordinates(2,pp)-Ly_min+0.5d0*dxyz(2), dxyz(2) )
@@ -342,7 +345,8 @@ subroutine AdvanceVelocityImp(particles,E,B0,Lx_min,Ly_min,Lz_min,dxyz, &
       end if
     else
   
-    ! Calculate vmin by moving to the frame where the ambient electric field is zero, and then add the electric field
+       ! Calculate vmin by moving to the frame where the ambient
+       ! electric field is zero, and then add the electric field
        vmin(:) = particles%coordinates(4:6,pp) - ve(1:3) + &
             etadt2( particles%species(pp) )*Ep(:)
 

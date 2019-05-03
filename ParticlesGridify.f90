@@ -91,14 +91,6 @@ subroutine ParticlesGridify(N,C,particles, &
     F7 =  rest(1)*drest(2)* rest(3)/dV
     F8 =  rest(1)* rest(2)* rest(3)/dV
 
- !   if (particles%species(pp) .lt. 1 .or. index_local(1) .lt. 1 .or. index_local(2) .lt. 1 .or. index_local(3) .lt. 1) then
- !     write(*,*) pp, num_local
- !     write(*,*) particles%species(pp)
- !     write(*,*) particles%coordinates(:,pp)
- !     write(*,*) index_local(:)
- !     write(*,*) rest(:)
- !   end if
-
     N( particles%species(pp), index_local(1)+0, index_local(2)+0, index_local(3)+0 ) = &
     N( particles%species(pp), index_local(1)+0, index_local(2)+0, index_local(3)+0 ) + &
       F1*species(particles%species(pp))%n2p

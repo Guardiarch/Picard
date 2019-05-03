@@ -11,7 +11,7 @@ the Swedish National Space Board (SNSB project 201/15) and
 Herbert Gunell by the Swedish National Space Agency (SNSA
 project 108/18).
 @author    :  Jesper Lindkvist
-Email      :  jesper.lindkvist@umu.se
+Email      :  jesper.lindkvist.se@gmail.com
 
 @author    :  Herbert Gunell
 Email      :  herbert.gunell@physics.org
@@ -30,7 +30,10 @@ packthingspicard   moves and packs the output into .tgz files then
 		   rebuilds the outp directory
 packthingspicard   just packs things - nothing else
 m_files		   is a directory containing matlab m-files for
-		   postprocessing purposes
+		   postprocessing purposes. The basic procedure
+		   is to start by using picardconvert.m to convert the
+		   output text files to matlab format and then
+		   to use the other.m-files for plotting.
 
 
 		 

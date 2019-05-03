@@ -8,7 +8,7 @@
 ! This project was funded by the Swedish National Space
 ! Board (SNSB project 201/15).
 ! @author    :  Jesper Lindkvist
-! Email      :  jesper.lindkvist@umu.se
+! Email      :  jesper.lindkvist.se@gmail.com
 !
 ! @author    :  Herbert Gunell
 ! Email      :  herbert.gunell@physics.org
@@ -167,13 +167,6 @@ program picard
     end if
   end if
 
-
-! I'm commenting this out now in order that we may run the code 
-! several times with the same inputs and be sure to get exactly the 
-! same results. HG 2018-11-30
-!!$  call random_seed( size = Nprocs )
-!!$  allocate( seed(Nprocs) )
-!!$  call random_seed( put = seed )
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 2.1.0 SIMULATION PARAMETERS

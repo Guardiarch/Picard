@@ -28,7 +28,6 @@ subroutine BCfields(E,Nx_local,Ny_local,Nz_local, &
   if (zflow) then
 
     if (idpz - myid .lt. 1) then
-!      E(:,:,:,Nz_local+1:Nz_local+2) = 0.0d0
       E(:,:,:,Nz_local+2) = 0.0d0
     end if
     
@@ -42,12 +41,10 @@ subroutine BCfields(E,Nx_local,Ny_local,Nz_local, &
   if (yflow) then
 
     if (idpy - myid .lt. 1) then
-!      E(:,:,Ny_local+1:Ny_local+2,:) = 0.0d0
       E(:,:,Ny_local+2,:) = 0.0d0
     end if
     
     if (myid - idny .lt. 1) then
-!      E(:,:,1:2,:)                   = 0.0d0
       E(:,:,1,:)                   = 0.0d0
     end if
 
@@ -57,7 +54,6 @@ subroutine BCfields(E,Nx_local,Ny_local,Nz_local, &
 
 ! INFLOW
     if (idpx - myid .lt. 1) then
-!      E(:,Nx_local+1:Nx_local+2,:,:) = 0.0d0
       E(:,Nx_local+2,:,:) = 0.0d0
     end if
 
